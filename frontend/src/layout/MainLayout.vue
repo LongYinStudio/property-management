@@ -111,7 +111,7 @@ const toggleCollapse = () => {
 const handleCommand = (command) => {
   switch (command) {
     case "info":
-      // TODO: 个人信息
+      router.push("/profile");
       break;
     case "password":
       router.push("/change-password");

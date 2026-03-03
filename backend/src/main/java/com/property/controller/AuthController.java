@@ -4,6 +4,7 @@ import com.property.common.Result;
 import com.property.dto.ChangePasswordRequest;
 import com.property.dto.LoginRequest;
 import com.property.dto.RegisterRequest;
+import com.property.dto.UpdateProfileRequest;
 import com.property.service.AuthService;
 import com.property.vo.LoginVO;
 import com.property.vo.UserVO;
@@ -44,6 +45,14 @@ public class AuthController {
     @GetMapping("/info")
     public Result<UserVO> getCurrentUser() {
         return Result.success(authService.getCurrentUser());
+    }
+
+    /**
+     * 更新个人信息
+     */
+    @PutMapping("/info")
+    public Result<UserVO> updateProfile(@Valid @RequestBody UpdateProfileRequest request) {
+        return Result.success("更新成功", authService.updateProfile(request));
     }
 
     /**

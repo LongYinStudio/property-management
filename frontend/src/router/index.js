@@ -56,6 +56,12 @@ const routes = [
         meta: { title: "统计报表", icon: "DataAnalysis" },
       },
       {
+        path: "profile",
+        name: "Profile",
+        component: () => import("@/views/Profile.vue"),
+        meta: { title: "个人信息" },
+      },
+      {
         path: "change-password",
         name: "ChangePassword",
         component: () => import("@/views/ChangePassword.vue"),

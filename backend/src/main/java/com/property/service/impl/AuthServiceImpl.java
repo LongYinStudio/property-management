@@ -6,6 +6,7 @@ import com.property.common.ResultCode;
 import com.property.dto.ChangePasswordRequest;
 import com.property.dto.LoginRequest;
 import com.property.dto.RegisterRequest;
+import com.property.dto.UpdateProfileRequest;
 import com.property.entity.User;
 import com.property.mapper.UserMapper;
 import com.property.security.JwtUtils;
@@ -111,6 +112,32 @@ public class AuthServiceImpl implements AuthService {
         // 更新密码
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userMapper.updateById(user);
+    }
+    
+    @Override
+    public UserVO updateProfile(UpdateProfileRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BusinessException("用户未登录");
+        }
+        
+        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
+        User user = userMapper.selectById(loginUser.getUser().getId());
+        
+        // 更新个人信息
+        if (request.getRealName() != null) {
+            user.setRealName(request.getRealName());
+        }
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone());
+        }
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+        
+        userMapper.updateById(user);
+        
+        return convertToUserVO(user);
     }
     
     private UserVO convertToUserVO(User user) {
