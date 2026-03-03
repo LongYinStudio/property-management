@@ -1,6 +1,9 @@
 package com.property.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.property.common.BusinessException;
+import com.property.common.ResultCode;
+import com.property.dto.ChangePasswordRequest;
 import com.property.dto.LoginRequest;
 import com.property.dto.RegisterRequest;
 import com.property.entity.User;
@@ -60,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getUsername, request.getUsername());
         if (userMapper.selectCount(queryWrapper) > 0) {
-            throw new RuntimeException("用户名已存在");
+            throw new BusinessException("用户名已存在");
         }
         
         User user = new User();
@@ -81,13 +84,33 @@ public class AuthServiceImpl implements AuthService {
     public UserVO getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("用户未登录");
+            throw new BusinessException("用户未登录");
         }
         
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
         User user = userMapper.selectById(loginUser.getUser().getId());
         
         return convertToUserVO(user);
+    }
+    
+    @Override
+    public void changePassword(ChangePasswordRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BusinessException("用户未登录");
+        }
+        
+        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
+        User user = userMapper.selectById(loginUser.getUser().getId());
+        
+        // 验证原密码
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new BusinessException(ResultCode.OLD_PASSWORD_ERROR);
+        }
+        
+        // 更新密码
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userMapper.updateById(user);
     }
     
     private UserVO convertToUserVO(User user) {

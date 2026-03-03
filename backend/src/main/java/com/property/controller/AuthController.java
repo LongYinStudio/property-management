@@ -1,6 +1,7 @@
 package com.property.controller;
 
 import com.property.common.Result;
+import com.property.dto.ChangePasswordRequest;
 import com.property.dto.LoginRequest;
 import com.property.dto.RegisterRequest;
 import com.property.service.AuthService;
@@ -43,5 +44,14 @@ public class AuthController {
     @GetMapping("/info")
     public Result<UserVO> getCurrentUser() {
         return Result.success(authService.getCurrentUser());
+    }
+
+    /**
+     * 修改密码
+     */
+    @PutMapping("/password")
+    public Result<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(request);
+        return Result.success("密码修改成功", null);
     }
 }

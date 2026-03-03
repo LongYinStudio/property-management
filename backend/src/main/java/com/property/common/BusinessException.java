@@ -1,17 +1,20 @@
 package com.property.common;
 
+import lombok.Getter;
+
 /**
  * 业务异常
  */
+@Getter
 public class BusinessException extends RuntimeException {
     
     private static final long serialVersionUID = 1L;
     
-    private Integer code;
+    private final Integer code;
     
     public BusinessException(String message) {
         super(message);
-        this.code = 500;
+        this.code = ResultCode.BUSINESS_ERROR.getCode();
     }
     
     public BusinessException(Integer code, String message) {
@@ -19,7 +22,13 @@ public class BusinessException extends RuntimeException {
         this.code = code;
     }
     
-    public Integer getCode() {
-        return code;
+    public BusinessException(ResultCode resultCode) {
+        super(resultCode.getMessage());
+        this.code = resultCode.getCode();
+    }
+    
+    public BusinessException(ResultCode resultCode, String message) {
+        super(message);
+        this.code = resultCode.getCode();
     }
 }

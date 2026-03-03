@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
     public Result<Void> handleAuthenticationException(AuthenticationException e) {
         log.error("认证异常：{}", e.getMessage());
         if (e instanceof BadCredentialsException) {
-            return Result.unauthorized("用户名或密码错误");
+            return Result.error(ResultCode.BUSINESS_ERROR.getCode(), "用户名或密码错误");
         }
         return Result.unauthorized(e.getMessage());
     }
