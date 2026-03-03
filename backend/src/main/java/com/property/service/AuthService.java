@@ -1,5 +1,6 @@
 package com.property.service;
 
+import com.property.dto.ChangePasswordRequest;
 import com.property.dto.LoginRequest;
 import com.property.dto.RegisterRequest;
 import com.property.vo.LoginVO;
@@ -24,4 +25,9 @@ public interface AuthService {
      * 获取当前用户信息
      */
     UserVO getCurrentUser();
+    
+    /**
+     * 修改密码
+     */
+    void changePassword(ChangePasswordRequest request);
 }

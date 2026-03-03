@@ -41,9 +41,7 @@
         </el-form-item>
         <div class="login-footer">
           <span>还没有账号？</span>
-          <el-button type="text" @click="showRegister = true"
-            >立即注册</el-button
-          >
+          <el-link type="primary" @click="showRegister = true">立即注册</el-link>
         </div>
       </el-form>
     </div>
@@ -216,10 +214,9 @@ const handleRegister = async () => {
   text-align: center;
   color: #999;
   font-size: 14px;
-
-  .el-button {
-    width: auto;
-    padding: 0;
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
 }
 </style>

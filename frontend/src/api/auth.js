@@ -26,6 +26,15 @@ export function getUserInfo() {
   });
 }
 
+// 修改密码
+export function changePassword(data) {
+  return request({
+    url: "/auth/password",
+    method: "put",
+    data,
+  });
+}
+
 // 退出登录
 export function logout() {
   return Promise.resolve();

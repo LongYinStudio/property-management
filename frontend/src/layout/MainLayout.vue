@@ -114,7 +114,7 @@ const handleCommand = (command) => {
       // TODO: 个人信息
       break;
     case "password":
-      // TODO: 修改密码
+      router.push("/change-password");
       break;
     case "logout":
       ElMessageBox.confirm("确定要退出登录吗？", "提示", {
