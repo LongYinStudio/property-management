@@ -44,13 +44,6 @@
             <el-button type="primary" link @click="handleView(row)"
               >查看</el-button
             >
-            <el-button
-              type="success"
-              link
-              @click="handleProcess(row)"
-              v-if="row.status === 0"
-              >处理</el-button
-            >
             <el-button type="danger" link @click="handleDelete(row)"
               >删除</el-button
             >
@@ -64,17 +57,100 @@
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
         class="mt-20"
+        @size-change="fetchData"
+        @current-change="fetchData"
       />
     </el-card>
+
+    <!-- 新增报修对话框 -->
+    <el-dialog v-model="dialogVisible" title="新增报修" width="500px">
+      <el-form
+        ref="formRef"
+        :model="formData"
+        :rules="formRules"
+        label-width="80px"
+      >
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="formData.title" placeholder="请输入报修标题" />
+        </el-form-item>
+        <el-form-item label="类型" prop="type">
+          <el-select v-model="formData.type" placeholder="请选择报修类型">
+            <el-option label="水管" :value="1" />
+            <el-option label="电路" :value="2" />
+            <el-option label="门窗" :value="3" />
+            <el-option label="其他" :value="4" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="内容" prop="content">
+          <el-input
+            v-model="formData.content"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入报修内容"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitLoading">
+          提交
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 查看详情对话框 -->
+    <el-dialog v-model="viewDialogVisible" title="报修详情" width="500px">
+      <el-descriptions :column="1" border>
+        <el-descriptions-item label="标题">{{
+          viewData.title
+        }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{
+          getTypeName(viewData.type)
+        }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="getStatusType(viewData.status)">{{
+            getStatusName(viewData.status)
+          }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="内容">{{
+          viewData.content || "无"
+        }}</el-descriptions-item>
+        <el-descriptions-item label="提交时间">{{
+          viewData.createTime
+        }}</el-descriptions-item>
+        <el-descriptions-item label="处理人" v-if="viewData.handlerName">{{
+          viewData.handlerName
+        }}</el-descriptions-item>
+        <el-descriptions-item label="处理结果" v-if="viewData.handleResult">{{
+          viewData.handleResult
+        }}</el-descriptions-item>
+        <el-descriptions-item label="处理时间" v-if="viewData.handleTime">{{
+          viewData.handleTime
+        }}</el-descriptions-item>
+      </el-descriptions>
+      <template #footer>
+        <el-button @click="viewDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import {
+  createRepair,
+  getRepairPage,
+  getRepairById,
+  deleteRepair,
+} from "@/api/repair";
 
 const loading = ref(false);
 const total = ref(0);
+const submitLoading = ref(false);
+const dialogVisible = ref(false);
+const viewDialogVisible = ref(false);
+const formRef = ref(null);
 
 const queryParams = reactive({
   pageNum: 1,
@@ -82,29 +158,20 @@ const queryParams = reactive({
   status: null,
 });
 
-const tableData = ref([
-  {
-    id: 1,
-    title: "水管漏水",
-    type: 1,
-    status: 0,
-    createTime: "2024-01-15 10:30",
-  },
-  {
-    id: 2,
-    title: "电路故障",
-    type: 2,
-    status: 1,
-    createTime: "2024-01-14 15:20",
-  },
-  {
-    id: 3,
-    title: "门锁损坏",
-    type: 3,
-    status: 2,
-    createTime: "2024-01-13 09:00",
-  },
-]);
+const tableData = ref([]);
+
+const formData = reactive({
+  title: "",
+  type: null,
+  content: "",
+});
+
+const formRules = {
+  title: [{ required: true, message: "请输入报修标题", trigger: "blur" }],
+  type: [{ required: true, message: "请选择报修类型", trigger: "change" }],
+};
+
+const viewData = ref({});
 
 const getTypeName = (type) => {
   const names = { 1: "水管", 2: "电路", 3: "门窗", 4: "其他" };
@@ -121,8 +188,22 @@ const getStatusName = (status) => {
   return names[status] || "未知";
 };
 
+const fetchData = async () => {
+  loading.value = true;
+  try {
+    const res = await getRepairPage(queryParams);
+    tableData.value = res.data.records;
+    total.value = res.data.total;
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loading.value = false;
+  }
+};
+
 const handleSearch = () => {
   queryParams.pageNum = 1;
+  fetchData();
 };
 
 const handleReset = () => {
@@ -131,15 +212,37 @@ const handleReset = () => {
 };
 
 const handleAdd = () => {
-  ElMessage.info("新增功能开发中");
+  formData.title = "";
+  formData.type = null;
+  formData.content = "";
+  dialogVisible.value = true;
 };
 
-const handleView = (row) => {
-  ElMessage.info("查看功能开发中");
+const handleSubmit = async () => {
+  const valid = await formRef.value.validate().catch(() => false);
+  if (!valid) return;
+
+  submitLoading.value = true;
+  try {
+    await createRepair(formData);
+    ElMessage.success("提交成功");
+    dialogVisible.value = false;
+    fetchData();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    submitLoading.value = false;
+  }
 };
 
-const handleProcess = (row) => {
-  ElMessage.info("处理功能开发中");
+const handleView = async (row) => {
+  try {
+    const res = await getRepairById(row.id);
+    viewData.value = res.data;
+    viewDialogVisible.value = true;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const handleDelete = (row) => {
@@ -148,19 +251,28 @@ const handleDelete = (row) => {
     cancelButtonText: "取消",
     type: "warning",
   })
-    .then(() => {
-      ElMessage.success("删除成功");
+    .then(async () => {
+      try {
+        await deleteRepair(row.id);
+        ElMessage.success("删除成功");
+        fetchData();
+      } catch (error) {
+        console.error(error);
+      }
     })
     .catch(() => {});
 };
 
 onMounted(() => {
-  total.value = tableData.value.length;
+  fetchData();
 });
 </script>
 
 <style lang="scss" scoped>
 .search-form {
   margin-bottom: 20px;
+}
+.mt-20 {
+  margin-top: 20px;
 }
 </style>
