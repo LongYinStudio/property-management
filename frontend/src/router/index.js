@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Cookies from "js-cookie";
+import { useUserStore } from "@/stores/user";
 
 const routes = [
   {
@@ -77,7 +78,7 @@ const router = createRouter({
 });
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   document.title = to.meta.title
     ? `${to.meta.title} - 物业管理系统`
     : "物业管理系统";
@@ -92,6 +93,18 @@ router.beforeEach((to, from, next) => {
     }
   } else {
     if (token) {
+      const userStore = useUserStore();
+      // 如果 userInfo 为空，则获取用户信息
+      if (!userStore.userInfo) {
+        try {
+          await userStore.getUserInfoAction();
+        } catch (error) {
+          // 获取用户信息失败，清除 token 并跳转登录页
+          userStore.clearUserInfo();
+          next("/login");
+          return;
+        }
+      }
       next();
     } else {
       next("/login");
