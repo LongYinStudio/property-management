@@ -17,6 +17,7 @@ CREATE TABLE `sys_user` (
     `real_name` VARCHAR(50) DEFAULT NULL COMMENT '真实姓名',
     `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机号',
     `email` VARCHAR(100) DEFAULT NULL COMMENT '邮箱',
+    `avatar` VARCHAR(500) DEFAULT NULL COMMENT '头像URL',
     `role` TINYINT NOT NULL DEFAULT 3 COMMENT '角色：1-管理员 2-物业人员 3-业主',
     `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0-禁用 1-启用',
     `community_id` BIGINT DEFAULT NULL COMMENT '小区ID',

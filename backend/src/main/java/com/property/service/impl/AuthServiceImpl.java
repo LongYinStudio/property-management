@@ -128,6 +128,9 @@ public class AuthServiceImpl implements AuthService {
         if (request.getRealName() != null) {
             user.setRealName(request.getRealName());
         }
+        if (request.getAvatar() != null) {
+            user.setAvatar(request.getAvatar());
+        }
         if (request.getPhone() != null) {
             user.setPhone(request.getPhone());
         }

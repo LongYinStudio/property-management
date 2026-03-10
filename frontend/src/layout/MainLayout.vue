@@ -60,7 +60,9 @@
           <div class="header-right">
             <el-dropdown @command="handleCommand">
               <span class="user-info">
-                <el-avatar :size="32" icon="UserFilled" />
+                <el-avatar :size="32" :src="userStore.userInfo?.avatar">
+                  {{ userStore.userInfo?.realName?.charAt(0) || userStore.userInfo?.username?.charAt(0) }}
+                </el-avatar>
                 <span class="username">{{
                   userStore.userInfo?.realName || userStore.userInfo?.username
                 }}</span>

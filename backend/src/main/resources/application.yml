@@ -45,3 +45,8 @@ logging:
   level:
     com.property: debug
     org.springframework.security: info
+
+# 文件上传配置
+file:
+  upload-path: ${FILE_UPLOAD_PATH:${user.home}/property-uploads}
+  base-url: ${FILE_BASE_URL:http://localhost:8080}

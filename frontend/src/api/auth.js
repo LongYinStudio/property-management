@@ -48,3 +48,17 @@ export function changePassword(data) {
 export function logout() {
   return Promise.resolve();
 }
+
+// 上传头像
+export function uploadAvatar(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return request({
+    url: "/file/avatar",
+    method: "post",
+    data: formData,
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}
