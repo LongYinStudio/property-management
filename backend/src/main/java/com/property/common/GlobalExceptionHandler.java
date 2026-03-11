@@ -3,6 +3,7 @@ package com.property.common;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
@@ -60,6 +61,9 @@ public class GlobalExceptionHandler {
         log.error("认证异常：{}", e.getMessage());
         if (e instanceof BadCredentialsException) {
             return Result.error(ResultCode.BUSINESS_ERROR.getCode(), "用户名或密码错误");
+        }
+        if (e instanceof DisabledException) {
+            return Result.error(ResultCode.BUSINESS_ERROR.getCode(), "账号已被禁用，请联系管理员");
         }
         return Result.unauthorized(e.getMessage());
     }
