@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * 用户服务实现
@@ -169,6 +170,17 @@ public class UserServiceImpl implements UserService {
         
         user.setStatus(status);
         userMapper.updateById(user);
+    }
+    
+    @Override
+    public List<UserVO> getOwnerList() {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getRole, User.ROLE_OWNER);
+        queryWrapper.eq(User::getStatus, User.STATUS_ENABLE);
+        queryWrapper.orderByAsc(User::getRealName);
+        
+        List<User> users = userMapper.selectList(queryWrapper);
+        return users.stream().map(this::convertToVO).toList();
     }
     
     private Long getCurrentUserId() {

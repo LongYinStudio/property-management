@@ -51,3 +51,11 @@ export function updateUserStatus(id, status) {
     params: { status },
   });
 }
+
+// 获取业主列表
+export function getOwnerList() {
+  return request({
+    url: "/user/owners",
+    method: "get",
+  });
+}

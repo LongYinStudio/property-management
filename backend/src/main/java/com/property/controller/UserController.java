@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 用户管理
  */
@@ -78,5 +80,14 @@ public class UserController {
     public Result<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status) {
         userService.updateStatus(id, status);
         return Result.success("状态更新成功", null);
+    }
+    
+    /**
+     * 获取业主列表
+     */
+    @GetMapping("/owners")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public Result<List<UserVO>> getOwnerList() {
+        return Result.success(userService.getOwnerList());
     }
 }
