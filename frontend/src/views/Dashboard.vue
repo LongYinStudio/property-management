@@ -2,7 +2,7 @@
   <div class="dashboard">
     <el-row :gutter="20">
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card" v-loading="loading">
           <div class="stat-content">
             <div class="stat-icon user-icon">
               <el-icon :size="40"><User /></el-icon>
@@ -15,7 +15,7 @@
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card" v-loading="loading">
           <div class="stat-content">
             <div class="stat-icon repair-icon">
               <el-icon :size="40"><Tools /></el-icon>
@@ -28,7 +28,7 @@
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card" v-loading="loading">
           <div class="stat-content">
             <div class="stat-icon fee-icon">
               <el-icon :size="40"><Wallet /></el-icon>
@@ -41,7 +41,7 @@
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card" v-loading="loading">
           <div class="stat-content">
             <div class="stat-icon complaint-icon">
               <el-icon :size="40"><ChatDotSquare /></el-icon>
@@ -61,11 +61,16 @@
       <el-col :span="12">
         <el-card>
           <template #header>
-            <span>最近报修</span>
+            <div class="card-header">
+              <span>最近报修</span>
+              <el-button type="primary" link @click="goToRepair">
+                查看全部
+              </el-button>
+            </div>
           </template>
-          <el-table :data="recentRepairs" style="width: 100%">
+          <el-table :data="recentRepairs" style="width: 100%" v-loading="repairLoading">
             <el-table-column prop="title" label="标题" />
-            <el-table-column prop="status" label="状态">
+            <el-table-column prop="status" label="状态" width="100">
               <template #default="{ row }">
                 <el-tag :type="getStatusType(row.status)">{{
                   getStatusText(row.status)
@@ -74,16 +79,22 @@
             </el-table-column>
             <el-table-column prop="createTime" label="提交时间" width="180" />
           </el-table>
+          <el-empty v-if="!repairLoading && recentRepairs.length === 0" description="暂无数据" />
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card>
           <template #header>
-            <span>最近投诉</span>
+            <div class="card-header">
+              <span>最近投诉</span>
+              <el-button type="primary" link @click="goToComplaint">
+                查看全部
+              </el-button>
+            </div>
           </template>
-          <el-table :data="recentComplaints" style="width: 100%">
+          <el-table :data="recentComplaints" style="width: 100%" v-loading="complaintLoading">
             <el-table-column prop="title" label="标题" />
-            <el-table-column prop="status" label="状态">
+            <el-table-column prop="status" label="状态" width="100">
               <template #default="{ row }">
                 <el-tag :type="getComplaintStatusType(row.status)">{{
                   getComplaintStatusText(row.status)
@@ -92,6 +103,7 @@
             </el-table-column>
             <el-table-column prop="createTime" label="提交时间" width="180" />
           </el-table>
+          <el-empty v-if="!complaintLoading && recentComplaints.length === 0" description="暂无数据" />
         </el-card>
       </el-col>
     </el-row>
@@ -100,24 +112,63 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { getDashboardStats } from "@/api/statistics";
+import { getRepairPage } from "@/api/repair";
+import { getComplaintPage } from "@/api/complaint";
+
+const router = useRouter();
+
+const loading = ref(false);
+const repairLoading = ref(false);
+const complaintLoading = ref(false);
 
 const statistics = ref({
-  userCount: 128,
-  pendingRepair: 5,
-  unpaidFee: 12,
-  pendingComplaint: 3,
+  userCount: 0,
+  pendingRepair: 0,
+  unpaidFee: 0,
+  pendingComplaint: 0,
+  pendingCleaning: 0,
 });
 
-const recentRepairs = ref([
-  { id: 1, title: "水管漏水", status: 0, createTime: "2024-01-15 10:30" },
-  { id: 2, title: "门锁损坏", status: 1, createTime: "2024-01-14 15:20" },
-  { id: 3, title: "电路故障", status: 2, createTime: "2024-01-13 09:00" },
-]);
+const recentRepairs = ref([]);
+const recentComplaints = ref([]);
 
-const recentComplaints = ref([
-  { id: 1, title: "噪音扰民", status: 0, createTime: "2024-01-15 08:00" },
-  { id: 2, title: "停车秩序", status: 1, createTime: "2024-01-14 11:30" },
-]);
+const loadStatistics = async () => {
+  loading.value = true;
+  try {
+    const { data } = await getDashboardStats();
+    statistics.value = data;
+  } catch (error) {
+    console.error("加载统计数据失败:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const loadRecentRepairs = async () => {
+  repairLoading.value = true;
+  try {
+    const { data } = await getRepairPage({ pageNum: 1, pageSize: 5 });
+    recentRepairs.value = data.records || [];
+  } catch (error) {
+    console.error("加载报修数据失败:", error);
+  } finally {
+    repairLoading.value = false;
+  }
+};
+
+const loadRecentComplaints = async () => {
+  complaintLoading.value = true;
+  try {
+    const { data } = await getComplaintPage({ pageNum: 1, pageSize: 5 });
+    recentComplaints.value = data.records || [];
+  } catch (error) {
+    console.error("加载投诉数据失败:", error);
+  } finally {
+    complaintLoading.value = false;
+  }
+};
 
 const getStatusType = (status) => {
   const types = { 0: "warning", 1: "primary", 2: "success", 3: "info" };
@@ -139,8 +190,18 @@ const getComplaintStatusText = (status) => {
   return texts[status] || "未知";
 };
 
+const goToRepair = () => {
+  router.push("/repair");
+};
+
+const goToComplaint = () => {
+  router.push("/complaint");
+};
+
 onMounted(() => {
-  // TODO: 加载数据
+  loadStatistics();
+  loadRecentRepairs();
+  loadRecentComplaints();
 });
 </script>
 
@@ -193,6 +254,12 @@ onMounted(() => {
         }
       }
     }
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 }
 </style>
