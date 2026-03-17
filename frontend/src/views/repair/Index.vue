@@ -10,6 +10,7 @@
             v-model="queryParams.status"
             placeholder="请选择状态"
             clearable
+            style="width: 120px"
           >
             <el-option label="待处理" :value="0" />
             <el-option label="处理中" :value="1" />

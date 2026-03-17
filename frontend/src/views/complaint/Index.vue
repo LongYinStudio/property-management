@@ -10,6 +10,7 @@
             v-model="queryParams.type"
             placeholder="请选择类型"
             clearable
+            style="width: 120px"
           >
             <el-option label="投诉" :value="1" />
             <el-option label="建议" :value="2" />

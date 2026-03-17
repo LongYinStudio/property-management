@@ -17,6 +17,7 @@
             v-model="queryParams.role"
             placeholder="请选择角色"
             clearable
+            style="width: 120px"
           >
             <el-option label="管理员" :value="1" />
             <el-option label="物业人员" :value="2" />

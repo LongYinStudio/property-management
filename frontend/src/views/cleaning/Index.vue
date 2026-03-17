@@ -9,6 +9,7 @@
           <el-select
             v-model="queryParams.status"
             placeholder="请选择状态"
+            style="width: 120px"
             clearable
           >
             <el-option label="待处理" :value="0" />

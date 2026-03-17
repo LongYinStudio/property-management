@@ -10,6 +10,7 @@
             v-model="queryParams.status"
             placeholder="请选择状态"
             clearable
+            style="width: 120px"
           >
             <el-option label="未支付" :value="0" />
             <el-option label="已支付" :value="1" />
@@ -20,6 +21,7 @@
             v-model="queryParams.type"
             placeholder="请选择类型"
             clearable
+            style="width: 120px"
           >
             <el-option label="物业费" :value="1" />
             <el-option label="停车费" :value="2" />
@@ -28,7 +30,12 @@
           </el-select>
         </el-form-item>
         <el-form-item label="年份">
-          <el-select v-model="queryParams.year" placeholder="请选择年份" clearable>
+          <el-select
+            v-model="queryParams.year"
+            placeholder="请选择年份"
+            clearable
+            style="width: 120px"
+          >
             <el-option
               v-for="year in yearOptions"
               :key="year"
@@ -415,3 +422,4 @@ onMounted(() => {
   margin-top: 20px;
 }
 </style>
+
