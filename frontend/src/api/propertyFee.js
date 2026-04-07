@@ -41,3 +41,13 @@ export function deletePropertyFee(id) {
     method: "delete",
   });
 }
+
+// 导出物业费Excel
+export function exportPropertyFee(params) {
+  return request({
+    url: "/property-fee/export",
+    method: "get",
+    params,
+    responseType: "blob",
+  });
+}

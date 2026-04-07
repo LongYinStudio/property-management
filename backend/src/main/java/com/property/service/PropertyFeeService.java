@@ -33,4 +33,9 @@ public interface PropertyFeeService {
      * 删除物业费（管理员/物业人员）
      */
     void delete(Long id);
+    
+    /**
+     * 导出物业费Excel
+     */
+    byte[] exportExcel(Integer status, Integer type, Integer year);
 }

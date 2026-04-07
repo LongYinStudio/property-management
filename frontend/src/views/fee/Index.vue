@@ -53,6 +53,7 @@
             v-if="isAdmin"
             >新增费用</el-button
           >
+          <el-button type="warning" @click="handleExport">导出Excel</el-button>
         </el-form-item>
       </el-form>
       <el-table :data="tableData" v-loading="loading" style="width: 100%">
@@ -239,6 +240,7 @@ import {
   getPropertyFeeById,
   payPropertyFee,
   deletePropertyFee,
+  exportPropertyFee,
 } from "@/api/propertyFee";
 import { getOwnerList } from "@/api/user";
 
@@ -404,6 +406,28 @@ const handleDelete = (row) => {
       }
     })
     .catch(() => {});
+};
+
+const handleExport = async () => {
+  try {
+    const res = await exportPropertyFee({
+      status: queryParams.status,
+      type: queryParams.type,
+      year: queryParams.year,
+    });
+    const blob = new Blob([res], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `物业费记录_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    ElMessage.success("导出成功");
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 onMounted(() => {

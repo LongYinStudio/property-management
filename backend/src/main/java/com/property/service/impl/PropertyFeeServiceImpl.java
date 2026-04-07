@@ -1,5 +1,7 @@
 package com.property.service.impl;
 
+import cn.hutool.poi.excel.ExcelUtil;
+import cn.hutool.poi.excel.ExcelWriter;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.property.common.BusinessException;
@@ -17,8 +19,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 物业费服务实现
@@ -136,6 +143,73 @@ public class PropertyFeeServiceImpl implements PropertyFeeService {
         }
         
         propertyFeeMapper.deleteById(id);
+    }
+    
+    @Override
+    public byte[] exportExcel(Integer status, Integer type, Integer year) {
+        LoginUser loginUser = getCurrentLoginUser();
+        User currentUser = loginUser.getUser();
+        
+        LambdaQueryWrapper<PropertyFee> queryWrapper = new LambdaQueryWrapper<>();
+        
+        // 业主只能导出自己的物业费
+        if (currentUser.getRole() == User.ROLE_OWNER) {
+            queryWrapper.eq(PropertyFee::getUserId, currentUser.getId());
+        }
+        
+        if (status != null) {
+            queryWrapper.eq(PropertyFee::getStatus, status);
+        }
+        if (type != null) {
+            queryWrapper.eq(PropertyFee::getType, type);
+        }
+        if (year != null) {
+            queryWrapper.eq(PropertyFee::getYear, year);
+        }
+        queryWrapper.orderByDesc(PropertyFee::getCreateTime);
+        
+        List<PropertyFee> feeList = propertyFeeMapper.selectList(queryWrapper);
+        
+        // 转换为导出数据
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (PropertyFee fee : feeList) {
+            Map<String, Object> row = new HashMap<>();
+            row.put("ID", fee.getId());
+            
+            User user = userMapper.selectById(fee.getUserId());
+            row.put("用户", user != null ? user.getRealName() : "");
+            
+            row.put("费用类型", getTypeName(fee.getType()));
+            row.put("金额", fee.getAmount());
+            row.put("年份", fee.getYear());
+            row.put("月份", fee.getMonth() + "月");
+            row.put("状态", fee.getStatus() == PropertyFee.STATUS_PAID ? "已支付" : "未支付");
+            row.put("描述", fee.getDescription() != null ? fee.getDescription() : "");
+            row.put("创建时间", fee.getCreateTime() != null ? fee.getCreateTime().format(FORMATTER) : "");
+            row.put("支付时间", fee.getPayTime() != null ? fee.getPayTime().format(FORMATTER) : "");
+            
+            rows.add(row);
+        }
+        
+        // 使用Hutool生成Excel
+        ExcelWriter writer = ExcelUtil.getWriter(true);
+        writer.write(rows, true);
+        
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        writer.flush(out, true);
+        writer.close();
+        
+        return out.toByteArray();
+    }
+    
+    private String getTypeName(Integer type) {
+        return switch (type) {
+            case 1 -> "物业费";
+            case 2 -> "停车费";
+            case 3 -> "水费";
+            case 4 -> "电费";
+            default -> "未知";
+        };
     }
     
     private LoginUser getCurrentLoginUser() {
