@@ -208,3 +208,48 @@ CREATE TABLE `facility` (
     KEY `idx_type` (`type`),
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='设备设施表';
+
+-- =============================================
+-- 车位表
+-- =============================================
+DROP TABLE IF EXISTS `parking_space`;
+CREATE TABLE `parking_space` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '车位ID',
+    `space_number` VARCHAR(20) NOT NULL COMMENT '车位编号',
+    `location` VARCHAR(100) DEFAULT NULL COMMENT '车位位置（如：地下停车场A区）',
+    `type` TINYINT NOT NULL DEFAULT 1 COMMENT '类型：1-普通车位 2-VIP车位',
+    `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-空闲 1-已出租 2-已出售',
+    `owner_id` BIGINT DEFAULT NULL COMMENT '业主ID（出售时关联）',
+    `price` DECIMAL(10,2) DEFAULT NULL COMMENT '出售价格',
+    `rent_price` DECIMAL(10,2) NOT NULL COMMENT '月租价格',
+    `remark` VARCHAR(255) DEFAULT NULL COMMENT '备注',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_space_number` (`space_number`),
+    KEY `idx_status` (`status`),
+    KEY `idx_owner_id` (`owner_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='车位表';
+
+-- =============================================
+-- 车位租用记录表
+-- =============================================
+DROP TABLE IF EXISTS `parking_rental`;
+CREATE TABLE `parking_rental` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '租用记录ID',
+    `space_id` BIGINT NOT NULL COMMENT '车位ID',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `start_date` DATE NOT NULL COMMENT '开始日期',
+    `end_date` DATE NOT NULL COMMENT '结束日期',
+    `amount` DECIMAL(10,2) NOT NULL COMMENT '金额',
+    `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-待支付 1-已支付 2-已过期',
+    `pay_time` DATETIME DEFAULT NULL COMMENT '支付时间',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记',
+    PRIMARY KEY (`id`),
+    KEY `idx_space_id` (`space_id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='车位租用记录表';

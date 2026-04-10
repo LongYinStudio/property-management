@@ -34,6 +34,10 @@
             <el-icon><Wallet /></el-icon>
             <span>物业费管理</span>
           </el-menu-item>
+          <el-menu-item index="/parking">
+            <el-icon><Location /></el-icon>
+            <span>车位管理</span>
+          </el-menu-item>
           <el-menu-item index="/complaint">
             <el-icon><ChatDotSquare /></el-icon>
             <span>投诉建议</span>

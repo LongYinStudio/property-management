@@ -45,6 +45,12 @@ const routes = [
         meta: { title: "物业费管理", icon: "Wallet" },
       },
       {
+        path: "parking",
+        name: "Parking",
+        component: () => import("@/views/parking/Index.vue"),
+        meta: { title: "车位管理", icon: "Location" },
+      },
+      {
         path: "complaint",
         name: "Complaint",
         component: () => import("@/views/complaint/Index.vue"),
