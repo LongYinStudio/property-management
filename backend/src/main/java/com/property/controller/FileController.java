@@ -44,42 +44,53 @@ public class FileController {
      */
     @PostMapping("/avatar")
     public Result<Map<String, String>> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        return uploadImageToDirectory(file, "avatar", 2, "图片大小不能超过 2MB");
+    }
+
+    /**
+     * 上传业务图片
+     */
+    @PostMapping("/image")
+    public Result<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
+        return uploadImageToDirectory(file, "image", 5, "图片大小不能超过 5MB");
+    }
+
+    private Result<Map<String, String>> uploadImageToDirectory(
+            MultipartFile file,
+            String directory,
+            int maxSizeMb,
+            String sizeErrorMessage
+    ) {
         if (file.isEmpty()) {
             return Result.error("请选择文件");
         }
 
-        // 检查文件类型
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             return Result.error("只能上传图片文件");
         }
 
-        // 检查文件大小（最大 2MB）
-        if (file.getSize() > 2 * 1024 * 1024) {
-            return Result.error("图片大小不能超过 2MB");
+        if (file.getSize() > (long) maxSizeMb * 1024 * 1024) {
+            return Result.error(sizeErrorMessage);
         }
 
         try {
-            // 生成文件名
             String originalFilename = file.getOriginalFilename();
             String extension = originalFilename != null && originalFilename.contains(".")
                     ? originalFilename.substring(originalFilename.lastIndexOf("."))
                     : ".jpg";
             String filename = UUID.randomUUID().toString().replace("-", "") + extension;
 
-            // 按日期分目录存储
             String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));
-            Path dirPath = Paths.get(uploadPath, "avatar", datePath);
+            Path dirPath = Paths.get(uploadPath, directory, datePath);
             if (!Files.exists(dirPath)) {
                 Files.createDirectories(dirPath);
             }
 
-            // 保存文件
             Path filePath = dirPath.resolve(filename);
             Files.copy(file.getInputStream(), filePath);
 
-            // 返回访问 URL
-            String url = baseUrl + "/uploads/avatar/" + datePath + "/" + filename;
+            String url = baseUrl + "/uploads/" + directory + "/" + datePath + "/" + filename;
             Map<String, String> result = new HashMap<>();
             result.put("url", url);
 

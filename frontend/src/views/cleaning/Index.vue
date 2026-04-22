@@ -59,7 +59,7 @@
     </el-card>
 
     <!-- 新增清洁任务对话框 -->
-    <el-dialog v-model="dialogVisible" title="新增清洁任务" width="500px">
+    <el-dialog v-model="dialogVisible" title="新增清洁任务" width="640px">
       <el-form
         ref="formRef"
         :model="formData"
@@ -77,10 +77,31 @@
             placeholder="请输入清洁描述"
           />
         </el-form-item>
+        <el-form-item label="照片">
+          <el-upload
+            v-model:file-list="imageUploadFiles"
+            action="#"
+            list-type="picture-card"
+            :limit="3"
+            :before-upload="beforeImageUpload"
+            :http-request="handleImageUpload"
+            :on-remove="handleImageRemove"
+            :on-preview="handleImagePreview"
+            :on-exceed="handleImageExceed"
+          >
+            <el-icon><Plus /></el-icon>
+          </el-upload>
+          <div class="upload-tip">最多上传 3 张图片，单张不超过 5MB</div>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitLoading">
+        <el-button
+          type="primary"
+          @click="handleSubmit"
+          :loading="submitLoading"
+          :disabled="imageUploading"
+        >
           提交
         </el-button>
       </template>
@@ -100,6 +121,20 @@
         <el-descriptions-item label="描述">{{
           viewData.description || "无"
         }}</el-descriptions-item>
+        <el-descriptions-item label="照片">
+          <div v-if="parseImages(viewData.images).length" class="image-list">
+            <el-image
+              v-for="(image, index) in parseImages(viewData.images)"
+              :key="image"
+              :src="image"
+              :preview-src-list="parseImages(viewData.images)"
+              :initial-index="index"
+              fit="cover"
+              class="detail-image"
+            />
+          </div>
+          <span v-else>无</span>
+        </el-descriptions-item>
         <el-descriptions-item label="提交时间">{{
           viewData.createTime
         }}</el-descriptions-item>
@@ -117,18 +152,24 @@
         <el-button @click="viewDialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="imagePreviewVisible" title="图片预览" width="640px">
+      <img :src="imagePreviewUrl" class="preview-image" alt="预览图片" />
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { Plus } from "@element-plus/icons-vue";
 import {
   createCleaning,
   getCleaningPage,
   getCleaningById,
   deleteCleaning,
 } from "@/api/cleaning";
+import { uploadImage } from "@/api/file";
 
 const loading = ref(false);
 const total = ref(0);
@@ -136,6 +177,11 @@ const submitLoading = ref(false);
 const dialogVisible = ref(false);
 const viewDialogVisible = ref(false);
 const formRef = ref(null);
+const imageUploadFiles = ref([]);
+const imageUploading = ref(false);
+const imageUploadCount = ref(0);
+const imagePreviewVisible = ref(false);
+const imagePreviewUrl = ref("");
 
 const queryParams = reactive({
   pageNum: 1,
@@ -148,6 +194,7 @@ const tableData = ref([]);
 const formData = reactive({
   location: "",
   description: "",
+  images: "",
 });
 
 const formRules = {
@@ -192,16 +239,92 @@ const handleReset = () => {
 const handleAdd = () => {
   formData.location = "";
   formData.description = "";
+  formData.images = "";
+  imageUploadFiles.value = [];
   dialogVisible.value = true;
+};
+
+const beforeImageUpload = (file) => {
+  const isImage = file.type.startsWith("image/");
+  const isLt5M = file.size / 1024 / 1024 <= 5;
+
+  if (!isImage) {
+    ElMessage.error("只能上传图片文件");
+    return false;
+  }
+  if (!isLt5M) {
+    ElMessage.error("图片大小不能超过 5MB");
+    return false;
+  }
+  return true;
+};
+
+const updateImages = () => {
+  formData.images = imageUploadFiles.value
+    .map((file) => file.url)
+    .filter(Boolean)
+    .join(",");
+};
+
+const handleImageUpload = async (options) => {
+  imageUploadCount.value += 1;
+  imageUploading.value = true;
+
+  try {
+    const res = await uploadImage(options.file);
+    const currentFile = imageUploadFiles.value.find(
+      (file) => file.uid === options.file.uid,
+    );
+    if (currentFile) {
+      currentFile.url = res.data.url;
+      currentFile.status = "success";
+    }
+    updateImages();
+    options.onSuccess?.(res.data);
+  } catch (error) {
+    imageUploadFiles.value = imageUploadFiles.value.filter(
+      (file) => file.uid !== options.file.uid,
+    );
+    updateImages();
+    options.onError?.(error);
+  } finally {
+    imageUploadCount.value -= 1;
+    imageUploading.value = imageUploadCount.value > 0;
+  }
+};
+
+const handleImageRemove = () => {
+  updateImages();
+};
+
+const handleImagePreview = (file) => {
+  imagePreviewUrl.value = file.url;
+  imagePreviewVisible.value = true;
+};
+
+const handleImageExceed = () => {
+  ElMessage.warning("最多上传 3 张图片");
+};
+
+const parseImages = (images) => {
+  if (!images) return [];
+  return images
+    .split(",")
+    .map((image) => image.trim())
+    .filter(Boolean);
 };
 
 const handleSubmit = async () => {
   const valid = await formRef.value.validate().catch(() => false);
   if (!valid) return;
+  if (imageUploading.value) {
+    ElMessage.warning("图片正在上传，请稍后提交");
+    return;
+  }
 
   submitLoading.value = true;
   try {
-    await createCleaning(formData);
+    await createCleaning({ ...formData });
     ElMessage.success("提交成功");
     dialogVisible.value = false;
     fetchData();
@@ -251,5 +374,28 @@ onMounted(() => {
 }
 .mt-20 {
   margin-top: 20px;
+}
+.upload-tip {
+  width: 100%;
+  margin-top: 8px;
+  color: #909399;
+  font-size: 12px;
+  line-height: 18px;
+}
+.image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.detail-image {
+  width: 88px;
+  height: 88px;
+  border-radius: 4px;
+}
+.preview-image {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
 }
 </style>
