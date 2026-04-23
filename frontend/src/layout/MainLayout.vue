@@ -30,6 +30,10 @@
             <el-icon><Brush /></el-icon>
             <span>清洁管理</span>
           </el-menu-item>
+          <el-menu-item index="/inspection">
+            <el-icon><Operation /></el-icon>
+            <span>设备巡检</span>
+          </el-menu-item>
           <el-menu-item index="/fee">
             <el-icon><Wallet /></el-icon>
             <span>物业费管理</span>

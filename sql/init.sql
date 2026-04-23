@@ -210,6 +210,33 @@ CREATE TABLE `facility` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='设备设施表';
 
 -- =============================================
+-- 设备巡检记录表
+-- =============================================
+DROP TABLE IF EXISTS `equipment_inspection`;
+CREATE TABLE `equipment_inspection` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '巡检记录ID',
+    `user_id` BIGINT NOT NULL COMMENT '巡检人ID',
+    `equipment_name` VARCHAR(100) NOT NULL COMMENT '设备名称',
+    `equipment_type` TINYINT NOT NULL COMMENT '设备类型：1-消防设施 2-电梯 3-监控 4-给排水 5-配电 6-其他',
+    `location` VARCHAR(255) NOT NULL COMMENT '设备位置',
+    `inspection_date` DATE NOT NULL COMMENT '巡检日期',
+    `next_inspection_date` DATE DEFAULT NULL COMMENT '下次巡检日期',
+    `status` TINYINT NOT NULL DEFAULT 0 COMMENT '巡检状态：0-正常 1-异常 2-已维修',
+    `result` TEXT COMMENT '巡检结果',
+    `issue_description` TEXT COMMENT '问题描述',
+    `images` VARCHAR(1000) DEFAULT NULL COMMENT '图片地址',
+    `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_equipment_type` (`equipment_type`),
+    KEY `idx_status` (`status`),
+    KEY `idx_inspection_date` (`inspection_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='设备巡检记录表';
+
+-- =============================================
 -- 车位表
 -- =============================================
 DROP TABLE IF EXISTS `parking_space`;

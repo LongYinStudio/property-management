@@ -39,6 +39,12 @@ const routes = [
         meta: { title: "清洁管理", icon: "Brush" },
       },
       {
+        path: "inspection",
+        name: "EquipmentInspection",
+        component: () => import("@/views/inspection/Index.vue"),
+        meta: { title: "设备巡检", icon: "Operation" },
+      },
+      {
         path: "fee",
         name: "PropertyFee",
         component: () => import("@/views/fee/Index.vue"),
