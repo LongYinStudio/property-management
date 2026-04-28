@@ -189,6 +189,46 @@ CREATE TABLE `complaint` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='投诉建议表';
 
 -- =============================================
+-- 投票问卷活动表
+-- =============================================
+DROP TABLE IF EXISTS `vote_activity`;
+CREATE TABLE `vote_activity` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '活动ID',
+    `title` VARCHAR(100) NOT NULL COMMENT '活动标题',
+    `description` TEXT COMMENT '活动说明',
+    `type` TINYINT NOT NULL COMMENT '类型：1-业主投票 2-意见征集',
+    `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1-进行中 2-已结束',
+    `options` TEXT COMMENT '投票选项(JSON数组，仅投票类型使用)',
+    `publisher_id` BIGINT NOT NULL COMMENT '发布人ID',
+    `end_time` DATETIME DEFAULT NULL COMMENT '结束时间',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记',
+    PRIMARY KEY (`id`),
+    KEY `idx_type` (`type`),
+    KEY `idx_status` (`status`),
+    KEY `idx_publisher_id` (`publisher_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='投票问卷活动表';
+
+-- =============================================
+-- 投票问卷参与记录表
+-- =============================================
+DROP TABLE IF EXISTS `vote_response`;
+CREATE TABLE `vote_response` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '参与记录ID',
+    `activity_id` BIGINT NOT NULL COMMENT '活动ID',
+    `user_id` BIGINT NOT NULL COMMENT '参与用户ID',
+    `selected_option` VARCHAR(100) DEFAULT NULL COMMENT '投票选项',
+    `content` TEXT COMMENT '意见内容',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_activity_user` (`activity_id`, `user_id`),
+    KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='投票问卷参与记录表';
+
+-- =============================================
 -- 设备设施表
 -- =============================================
 DROP TABLE IF EXISTS `facility`;
