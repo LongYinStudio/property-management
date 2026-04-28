@@ -50,6 +50,10 @@
             <el-icon><Tickets /></el-icon>
             <span>投票/问卷</span>
           </el-menu-item>
+          <el-menu-item index="/visitor">
+            <el-icon><Van /></el-icon>
+            <span>访客管理</span>
+          </el-menu-item>
           <el-menu-item index="/contract">
             <el-icon><Document /></el-icon>
             <span>合同管理</span>

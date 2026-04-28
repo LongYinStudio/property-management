@@ -69,6 +69,12 @@ const routes = [
         meta: { title: "投票/问卷", icon: "Tickets" },
       },
       {
+        path: "visitor",
+        name: "Visitor",
+        component: () => import("@/views/visitor/Index.vue"),
+        meta: { title: "访客管理", icon: "Van" },
+      },
+      {
         path: "contract",
         name: "OwnerContract",
         component: () => import("@/views/contract/Index.vue"),

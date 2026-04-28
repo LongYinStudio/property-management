@@ -229,6 +229,35 @@ CREATE TABLE `vote_response` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='投票问卷参与记录表';
 
 -- =============================================
+-- 访客登记表
+-- =============================================
+DROP TABLE IF EXISTS `visitor_record`;
+CREATE TABLE `visitor_record` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '访客登记ID',
+    `owner_id` BIGINT NOT NULL COMMENT '业主ID',
+    `visitor_name` VARCHAR(50) NOT NULL COMMENT '访客姓名',
+    `visitor_phone` VARCHAR(20) NOT NULL COMMENT '访客手机号',
+    `visitor_count` INT NOT NULL DEFAULT 1 COMMENT '来访人数',
+    `license_plate` VARCHAR(20) DEFAULT NULL COMMENT '车牌号',
+    `purpose` VARCHAR(255) NOT NULL COMMENT '来访事由',
+    `visit_time` DATETIME NOT NULL COMMENT '到访时间',
+    `valid_until` DATETIME NOT NULL COMMENT '有效截止时间',
+    `pass_code` VARCHAR(20) NOT NULL COMMENT '通行证编号',
+    `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-待通行 1-已通行 2-已失效 3-已取消',
+    `verifier_id` BIGINT DEFAULT NULL COMMENT '核销人ID',
+    `verify_time` DATETIME DEFAULT NULL COMMENT '核销时间',
+    `remark` VARCHAR(255) DEFAULT NULL COMMENT '备注',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_pass_code` (`pass_code`),
+    KEY `idx_owner_id` (`owner_id`),
+    KEY `idx_status` (`status`),
+    KEY `idx_visit_time` (`visit_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='访客登记表';
+
+-- =============================================
 -- 设备设施表
 -- =============================================
 DROP TABLE IF EXISTS `facility`;
