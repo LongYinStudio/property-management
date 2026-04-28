@@ -63,6 +63,12 @@ const routes = [
         meta: { title: "投诉建议", icon: "ChatDotSquare" },
       },
       {
+        path: "contract",
+        name: "OwnerContract",
+        component: () => import("@/views/contract/Index.vue"),
+        meta: { title: "合同管理", icon: "Document" },
+      },
+      {
         path: "statistics",
         name: "Statistics",
         component: () => import("@/views/statistics/Index.vue"),

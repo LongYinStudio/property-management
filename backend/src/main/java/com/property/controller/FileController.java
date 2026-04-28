@@ -55,6 +55,51 @@ public class FileController {
         return uploadImageToDirectory(file, "image", 5, "图片大小不能超过 5MB");
     }
 
+    /**
+     * 上传合同附件
+     */
+    @PostMapping("/document")
+    public Result<Map<String, String>> uploadDocument(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return Result.error("请选择文件");
+        }
+
+        if (file.getSize() > 20L * 1024 * 1024) {
+            return Result.error("文件大小不能超过 20MB");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename != null && originalFilename.contains(".")
+                ? originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase()
+                : "";
+
+        if (!isAllowedDocumentExtension(extension)) {
+            return Result.error("仅支持上传 pdf、doc、docx、jpg、jpeg、png 文件");
+        }
+
+        try {
+            String filename = UUID.randomUUID().toString().replace("-", "") + extension;
+            String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));
+            Path dirPath = Paths.get(uploadPath, "document", datePath);
+            if (!Files.exists(dirPath)) {
+                Files.createDirectories(dirPath);
+            }
+
+            Path filePath = dirPath.resolve(filename);
+            Files.copy(file.getInputStream(), filePath);
+
+            String url = baseUrl + "/uploads/document/" + datePath + "/" + filename;
+            Map<String, String> result = new HashMap<>();
+            result.put("url", url);
+            result.put("name", originalFilename != null ? originalFilename : filename);
+
+            return Result.success("上传成功", result);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Result.error("上传失败：" + e.getMessage());
+        }
+    }
+
     private Result<Map<String, String>> uploadImageToDirectory(
             MultipartFile file,
             String directory,
@@ -99,5 +144,14 @@ public class FileController {
             e.printStackTrace();
             return Result.error("上传失败：" + e.getMessage());
         }
+    }
+
+    private boolean isAllowedDocumentExtension(String extension) {
+        return ".pdf".equals(extension)
+                || ".doc".equals(extension)
+                || ".docx".equals(extension)
+                || ".jpg".equals(extension)
+                || ".jpeg".equals(extension)
+                || ".png".equals(extension);
     }
 }

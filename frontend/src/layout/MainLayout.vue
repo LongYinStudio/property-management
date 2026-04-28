@@ -46,6 +46,10 @@
             <el-icon><ChatDotSquare /></el-icon>
             <span>投诉建议</span>
           </el-menu-item>
+          <el-menu-item index="/contract">
+            <el-icon><Document /></el-icon>
+            <span>合同管理</span>
+          </el-menu-item>
           <el-menu-item
             index="/statistics"
             v-if="userStore.userInfo?.role !== 3"

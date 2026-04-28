@@ -14,3 +14,18 @@ export function uploadImage(file) {
     },
   });
 }
+
+// 上传合同附件
+export function uploadDocument(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return request({
+    url: "/file/document",
+    method: "post",
+    data: formData,
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}

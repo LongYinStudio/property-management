@@ -280,3 +280,33 @@ CREATE TABLE `parking_rental` (
     KEY `idx_user_id` (`user_id`),
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='车位租用记录表';
+
+-- =============================================
+-- 业主合同表
+-- =============================================
+DROP TABLE IF EXISTS `owner_contract`;
+CREATE TABLE `owner_contract` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '合同ID',
+    `user_id` BIGINT NOT NULL COMMENT '业主ID',
+    `contract_no` VARCHAR(64) NOT NULL COMMENT '合同编号',
+    `contract_name` VARCHAR(100) NOT NULL COMMENT '合同名称',
+    `contract_type` TINYINT NOT NULL COMMENT '合同类型：1-入住协议 2-装修协议 3-车位合同 4-委托服务协议 5-其他',
+    `room_info` VARCHAR(100) DEFAULT NULL COMMENT '房屋信息',
+    `sign_date` DATE NOT NULL COMMENT '签署日期',
+    `start_date` DATE DEFAULT NULL COMMENT '开始日期',
+    `end_date` DATE DEFAULT NULL COMMENT '结束日期',
+    `amount` DECIMAL(10,2) DEFAULT NULL COMMENT '合同金额',
+    `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1-待签署 2-生效中 3-已到期 4-已终止',
+    `attachment_name` VARCHAR(255) DEFAULT NULL COMMENT '附件名称',
+    `attachment_url` VARCHAR(500) DEFAULT NULL COMMENT '附件地址',
+    `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+    `creator_id` BIGINT DEFAULT NULL COMMENT '录入人ID',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_contract_no` (`contract_no`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_status` (`status`),
+    KEY `idx_contract_type` (`contract_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='业主合同表';
