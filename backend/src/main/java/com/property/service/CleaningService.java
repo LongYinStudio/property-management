@@ -28,4 +28,14 @@ public interface CleaningService {
      * 删除清洁任务
      */
     void delete(Long id);
+
+    /**
+     * 指派清洁人员
+     */
+    CleaningVO assign(Long id, Long cleanerId);
+
+    /**
+     * 完成清洁任务
+     */
+    CleaningVO complete(Long id, String cleanResult);
 }

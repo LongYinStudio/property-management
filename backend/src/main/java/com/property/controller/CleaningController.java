@@ -2,11 +2,14 @@ package com.property.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.property.common.Result;
+import com.property.dto.CleaningCompleteRequest;
+import com.property.dto.CleaningAssignRequest;
 import com.property.dto.CleaningRequest;
 import com.property.service.CleaningService;
 import com.property.vo.CleaningVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -50,8 +53,27 @@ public class CleaningController {
      * 删除清洁任务
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public Result<Void> delete(@PathVariable Long id) {
         cleaningService.delete(id);
         return Result.success("删除成功", null);
+    }
+
+    /**
+     * 指派清洁人员
+     */
+    @PostMapping("/{id}/assign")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public Result<CleaningVO> assign(@PathVariable Long id, @Valid @RequestBody CleaningAssignRequest request) {
+        return Result.success("指派成功", cleaningService.assign(id, request.getCleanerId()));
+    }
+
+    /**
+     * 完成清洁任务
+     */
+    @PostMapping("/{id}/complete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public Result<CleaningVO> complete(@PathVariable Long id, @Valid @RequestBody CleaningCompleteRequest request) {
+        return Result.success("已完成", cleaningService.complete(id, request.getCleanResult()));
     }
 }

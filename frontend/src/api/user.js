@@ -59,3 +59,11 @@ export function getOwnerList() {
     method: "get",
   });
 }
+
+// 获取员工列表
+export function getStaffList() {
+  return request({
+    url: "/user/staff",
+    method: "get",
+  });
+}

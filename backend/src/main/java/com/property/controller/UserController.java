@@ -90,4 +90,13 @@ public class UserController {
     public Result<List<UserVO>> getOwnerList() {
         return Result.success(userService.getOwnerList());
     }
+
+    /**
+     * 获取员工列表
+     */
+    @GetMapping("/staff")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public Result<List<UserVO>> getStaffList() {
+        return Result.success(userService.getStaffList());
+    }
 }

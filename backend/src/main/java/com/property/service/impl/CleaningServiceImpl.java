@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -50,8 +51,6 @@ public class CleaningServiceImpl implements CleaningService {
     
     @Override
     public Page<CleaningVO> getPage(Integer pageNum, Integer pageSize, Integer status) {
-        Long userId = getCurrentUserId();
-        
         Page<Cleaning> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Cleaning> queryWrapper = new LambdaQueryWrapper<>();
         // queryWrapper.eq(Cleaning::getUserId, userId);
@@ -74,13 +73,7 @@ public class CleaningServiceImpl implements CleaningService {
         if (cleaning == null) {
             throw new BusinessException("清洁任务不存在");
         }
-        
-        // 验证是否是自己的清洁任务
-        Long userId = getCurrentUserId();
-        if (!cleaning.getUserId().equals(userId)) {
-            throw new BusinessException("无权查看该清洁任务");
-        }
-        
+
         return convertToVO(cleaning);
     }
     
@@ -90,16 +83,50 @@ public class CleaningServiceImpl implements CleaningService {
         if (cleaning == null) {
             throw new BusinessException("清洁任务不存在");
         }
-        
-        // 验证是否是自己的清洁任务
-        Long userId = getCurrentUserId();
-        if (!cleaning.getUserId().equals(userId)) {
-            throw new BusinessException("无权删除该清洁任务");
-        }
-        
+
         cleaningMapper.deleteById(id);
     }
-    
+
+    @Override
+    public CleaningVO assign(Long id, Long cleanerId) {
+        Cleaning cleaning = cleaningMapper.selectById(id);
+        if (cleaning == null) {
+            throw new BusinessException("清洁任务不存在");
+        }
+        if (cleaning.getStatus() != Cleaning.STATUS_PENDING) {
+            throw new BusinessException("只能指派待处理的清洁任务");
+        }
+
+        User cleaner = userMapper.selectById(cleanerId);
+        if (cleaner == null) {
+            throw new BusinessException("清洁人员不存在");
+        }
+
+        cleaning.setCleanerId(cleanerId);
+        cleaning.setStatus(Cleaning.STATUS_PROCESSING);
+        cleaningMapper.updateById(cleaning);
+
+        return convertToVO(cleaning);
+    }
+
+    @Override
+    public CleaningVO complete(Long id, String cleanResult) {
+        Cleaning cleaning = cleaningMapper.selectById(id);
+        if (cleaning == null) {
+            throw new BusinessException("清洁任务不存在");
+        }
+        if (cleaning.getStatus() == Cleaning.STATUS_COMPLETED) {
+            throw new BusinessException("该清洁任务已完成");
+        }
+
+        cleaning.setStatus(Cleaning.STATUS_COMPLETED);
+        cleaning.setCleanResult(cleanResult);
+        cleaning.setCleanTime(LocalDateTime.now());
+        cleaningMapper.updateById(cleaning);
+
+        return convertToVO(cleaning);
+    }
+
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {

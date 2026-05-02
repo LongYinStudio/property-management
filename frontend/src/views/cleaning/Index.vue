@@ -34,11 +34,26 @@
             }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="cleanerName" label="清洁人员" />
         <el-table-column prop="createTime" label="提交时间" width="180" />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleView(row)"
               >查看</el-button
+            >
+            <el-button
+              v-if="row.status === 0"
+              type="success"
+              link
+              @click="handleAssign(row)"
+              >指派</el-button
+            >
+            <el-button
+              v-if="row.status !== 2"
+              type="warning"
+              link
+              @click="handleComplete(row)"
+              >完成</el-button
             >
             <el-button type="danger" link @click="handleDelete(row)"
               >删除</el-button
@@ -156,6 +171,64 @@
     <el-dialog v-model="imagePreviewVisible" title="图片预览" width="640px">
       <img :src="imagePreviewUrl" class="preview-image" alt="预览图片" />
     </el-dialog>
+
+    <!-- 指派清洁人员对话框 -->
+    <el-dialog v-model="assignDialogVisible" title="指派清洁人员" width="480px">
+      <el-form label-width="80px">
+        <el-form-item label="清洁人员">
+          <el-select
+            v-model="assignForm.cleanerId"
+            placeholder="请选择清洁人员"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in staffList"
+              :key="item.id"
+              :label="item.realName"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="assignDialogVisible = false">取消</el-button>
+        <el-button
+          type="primary"
+          @click="handleAssignSubmit"
+          :loading="assignLoading"
+        >
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 完成清洁任务对话框 -->
+    <el-dialog
+      v-model="completeDialogVisible"
+      title="完成清洁任务"
+      width="480px"
+    >
+      <el-form label-width="80px">
+        <el-form-item label="清洁结果">
+          <el-input
+            v-model="completeForm.cleanResult"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入清洁结果"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="completeDialogVisible = false">取消</el-button>
+        <el-button
+          type="primary"
+          @click="handleCompleteSubmit"
+          :loading="completeLoading"
+        >
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -168,8 +241,11 @@ import {
   getCleaningPage,
   getCleaningById,
   deleteCleaning,
+  assignCleaning,
+  completeCleaning,
 } from "@/api/cleaning";
 import { uploadImage } from "@/api/file";
+import { getStaffList } from "@/api/user";
 
 const loading = ref(false);
 const total = ref(0);
@@ -182,6 +258,17 @@ const imageUploading = ref(false);
 const imageUploadCount = ref(0);
 const imagePreviewVisible = ref(false);
 const imagePreviewUrl = ref("");
+
+const assignDialogVisible = ref(false);
+const assignLoading = ref(false);
+const staffList = ref([]);
+const assignForm = reactive({ cleanerId: null });
+const assignTargetId = ref(null);
+
+const completeDialogVisible = ref(false);
+const completeLoading = ref(false);
+const completeForm = reactive({ cleanResult: "" });
+const completeTargetId = ref(null);
 
 const queryParams = reactive({
   pageNum: 1,
@@ -361,6 +448,56 @@ const handleDelete = (row) => {
       }
     })
     .catch(() => {});
+};
+
+const handleAssign = async (row) => {
+  assignTargetId.value = row.id;
+  assignForm.cleanerId = null;
+  try {
+    const res = await getStaffList();
+    staffList.value = res.data;
+  } catch (error) {
+    console.error(error);
+  }
+  assignDialogVisible.value = true;
+};
+
+const handleAssignSubmit = async () => {
+  if (!assignForm.cleanerId) {
+    ElMessage.warning("请选择清洁人员");
+    return;
+  }
+  assignLoading.value = true;
+  try {
+    await assignCleaning(assignTargetId.value, { cleanerId: assignForm.cleanerId });
+    ElMessage.success("指派成功");
+    assignDialogVisible.value = false;
+    fetchData();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    assignLoading.value = false;
+  }
+};
+
+const handleComplete = (row) => {
+  completeTargetId.value = row.id;
+  completeForm.cleanResult = "";
+  completeDialogVisible.value = true;
+};
+
+const handleCompleteSubmit = async () => {
+  completeLoading.value = true;
+  try {
+    await completeCleaning(completeTargetId.value, { cleanResult: completeForm.cleanResult });
+    ElMessage.success("已完成");
+    completeDialogVisible.value = false;
+    fetchData();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    completeLoading.value = false;
+  }
 };
 
 onMounted(() => {

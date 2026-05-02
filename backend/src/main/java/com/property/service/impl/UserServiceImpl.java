@@ -182,7 +182,18 @@ public class UserServiceImpl implements UserService {
         List<User> users = userMapper.selectList(queryWrapper);
         return users.stream().map(this::convertToVO).toList();
     }
-    
+
+    @Override
+    public List<UserVO> getStaffList() {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getRole, User.ROLE_STAFF);
+        queryWrapper.eq(User::getStatus, User.STATUS_ENABLE);
+        queryWrapper.orderByAsc(User::getRealName);
+
+        List<User> users = userMapper.selectList(queryWrapper);
+        return users.stream().map(this::convertToVO).toList();
+    }
+
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {

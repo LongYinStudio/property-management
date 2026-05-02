@@ -45,4 +45,9 @@ public interface UserService {
      * 获取业主列表
      */
     List<UserVO> getOwnerList();
+
+    /**
+     * 获取员工列表
+     */
+    List<UserVO> getStaffList();
 }

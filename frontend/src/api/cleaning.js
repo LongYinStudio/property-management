@@ -33,3 +33,21 @@ export function deleteCleaning(id) {
     method: "delete",
   });
 }
+
+// 指派清洁人员
+export function assignCleaning(id, data) {
+  return request({
+    url: `/cleaning/${id}/assign`,
+    method: "post",
+    data,
+  });
+}
+
+// 完成清洁任务
+export function completeCleaning(id, data) {
+  return request({
+    url: `/cleaning/${id}/complete`,
+    method: "post",
+    data,
+  });
+}
