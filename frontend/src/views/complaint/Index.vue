@@ -39,11 +39,26 @@
             }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="handlerName" label="处理人" />
         <el-table-column prop="createTime" label="提交时间" width="180" />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleView(row)"
               >查看</el-button
+            >
+            <el-button
+              v-if="row.status === 0"
+              type="success"
+              link
+              @click="handleReply(row)"
+              >回复</el-button
+            >
+            <el-button
+              v-if="row.status !== 2"
+              type="warning"
+              link
+              @click="handleClose(row)"
+              >关闭</el-button
             >
             <el-button type="danger" link @click="handleDelete(row)"
               >删除</el-button
@@ -133,6 +148,30 @@
         <el-button @click="viewDialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
+
+    <!-- 回复对话框 -->
+    <el-dialog v-model="replyDialogVisible" title="回复" width="480px">
+      <el-form label-width="80px">
+        <el-form-item label="回复内容">
+          <el-input
+            v-model="replyForm.reply"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入回复内容"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="replyDialogVisible = false">取消</el-button>
+        <el-button
+          type="primary"
+          @click="handleReplySubmit"
+          :loading="replyLoading"
+        >
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -144,6 +183,8 @@ import {
   getComplaintPage,
   getComplaintById,
   deleteComplaint,
+  replyComplaint,
+  closeComplaint,
 } from "@/api/complaint";
 
 const loading = ref(false);
@@ -173,6 +214,11 @@ const formRules = {
 };
 
 const viewData = ref({});
+
+const replyDialogVisible = ref(false);
+const replyLoading = ref(false);
+const replyForm = reactive({ reply: "" });
+const replyTargetId = ref(null);
 
 const getStatusType = (status) => {
   const types = { 0: "warning", 1: "success", 2: "info" };
@@ -251,6 +297,48 @@ const handleDelete = (row) => {
       try {
         await deleteComplaint(row.id);
         ElMessage.success("删除成功");
+        fetchData();
+      } catch (error) {
+        console.error(error);
+      }
+    })
+    .catch(() => {});
+};
+
+const handleReply = (row) => {
+  replyTargetId.value = row.id;
+  replyForm.reply = "";
+  replyDialogVisible.value = true;
+};
+
+const handleReplySubmit = async () => {
+  if (!replyForm.reply.trim()) {
+    ElMessage.warning("请输入回复内容");
+    return;
+  }
+  replyLoading.value = true;
+  try {
+    await replyComplaint(replyTargetId.value, { reply: replyForm.reply });
+    ElMessage.success("回复成功");
+    replyDialogVisible.value = false;
+    fetchData();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    replyLoading.value = false;
+  }
+};
+
+const handleClose = (row) => {
+  ElMessageBox.confirm("确定要关闭该投诉/建议吗？", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(async () => {
+      try {
+        await closeComplaint(row.id);
+        ElMessage.success("已关闭");
         fetchData();
       } catch (error) {
         console.error(error);

@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -50,11 +51,8 @@ public class ComplaintServiceImpl implements ComplaintService {
     
     @Override
     public Page<ComplaintVO> getPage(Integer pageNum, Integer pageSize, Integer type) {
-        Long userId = getCurrentUserId();
-        
         Page<Complaint> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Complaint> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Complaint::getUserId, userId);
         if (type != null) {
             queryWrapper.eq(Complaint::getType, type);
         }
@@ -74,13 +72,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         if (complaint == null) {
             throw new BusinessException("投诉建议记录不存在");
         }
-        
-        // 验证是否是自己的投诉建议
-        Long userId = getCurrentUserId();
-        if (!complaint.getUserId().equals(userId)) {
-            throw new BusinessException("无权查看该投诉建议记录");
-        }
-        
+
         return convertToVO(complaint);
     }
     
@@ -90,14 +82,44 @@ public class ComplaintServiceImpl implements ComplaintService {
         if (complaint == null) {
             throw new BusinessException("投诉建议记录不存在");
         }
-        
-        // 验证是否是自己的投诉建议
-        Long userId = getCurrentUserId();
-        if (!complaint.getUserId().equals(userId)) {
-            throw new BusinessException("无权删除该投诉建议记录");
-        }
-        
+
         complaintMapper.deleteById(id);
+    }
+
+    @Override
+    public ComplaintVO reply(Long id, String reply) {
+        Complaint complaint = complaintMapper.selectById(id);
+        if (complaint == null) {
+            throw new BusinessException("投诉建议记录不存在");
+        }
+        if (complaint.getStatus() == Complaint.STATUS_CLOSED) {
+            throw new BusinessException("该投诉建议已关闭");
+        }
+
+        Long handlerId = getCurrentUserId();
+        complaint.setHandlerId(handlerId);
+        complaint.setReply(reply);
+        complaint.setReplyTime(LocalDateTime.now());
+        complaint.setStatus(Complaint.STATUS_REPLIED);
+        complaintMapper.updateById(complaint);
+
+        return convertToVO(complaint);
+    }
+
+    @Override
+    public ComplaintVO close(Long id) {
+        Complaint complaint = complaintMapper.selectById(id);
+        if (complaint == null) {
+            throw new BusinessException("投诉建议记录不存在");
+        }
+        if (complaint.getStatus() == Complaint.STATUS_CLOSED) {
+            throw new BusinessException("该投诉建议已关闭");
+        }
+
+        complaint.setStatus(Complaint.STATUS_CLOSED);
+        complaintMapper.updateById(complaint);
+
+        return convertToVO(complaint);
     }
     
     private Long getCurrentUserId() {

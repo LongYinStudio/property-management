@@ -2,11 +2,13 @@ package com.property.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.property.common.Result;
+import com.property.dto.ComplaintReplyRequest;
 import com.property.dto.ComplaintRequest;
 import com.property.service.ComplaintService;
 import com.property.vo.ComplaintVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -50,8 +52,27 @@ public class ComplaintController {
      * 删除投诉/建议
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public Result<Void> delete(@PathVariable Long id) {
         complaintService.delete(id);
         return Result.success("删除成功", null);
+    }
+
+    /**
+     * 回复投诉/建议
+     */
+    @PostMapping("/{id}/reply")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public Result<ComplaintVO> reply(@PathVariable Long id, @Valid @RequestBody ComplaintReplyRequest request) {
+        return Result.success("回复成功", complaintService.reply(id, request.getReply()));
+    }
+
+    /**
+     * 关闭投诉/建议
+     */
+    @PostMapping("/{id}/close")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public Result<ComplaintVO> close(@PathVariable Long id) {
+        return Result.success("已关闭", complaintService.close(id));
     }
 }

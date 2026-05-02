@@ -28,4 +28,14 @@ public interface ComplaintService {
      * 删除投诉/建议
      */
     void delete(Long id);
+
+    /**
+     * 回复投诉/建议
+     */
+    ComplaintVO reply(Long id, String reply);
+
+    /**
+     * 关闭投诉/建议
+     */
+    ComplaintVO close(Long id);
 }

@@ -33,3 +33,20 @@ export function deleteComplaint(id) {
     method: "delete",
   });
 }
+
+// 回复投诉/建议
+export function replyComplaint(id, data) {
+  return request({
+    url: `/complaint/${id}/reply`,
+    method: "post",
+    data,
+  });
+}
+
+// 关闭投诉/建议
+export function closeComplaint(id) {
+  return request({
+    url: `/complaint/${id}/close`,
+    method: "post",
+  });
+}
