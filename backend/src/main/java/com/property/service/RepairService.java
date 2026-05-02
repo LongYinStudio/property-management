@@ -28,4 +28,14 @@ public interface RepairService {
      * 删除报修
      */
     void delete(Long id);
+
+    /**
+     * 指派维修人员
+     */
+    RepairVO assign(Long id, Long handlerId);
+
+    /**
+     * 完成报修处理
+     */
+    RepairVO complete(Long id, String handleResult);
 }

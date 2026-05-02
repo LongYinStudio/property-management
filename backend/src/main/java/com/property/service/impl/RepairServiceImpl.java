@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -51,11 +52,8 @@ public class RepairServiceImpl implements RepairService {
     
     @Override
     public Page<RepairVO> getPage(Integer pageNum, Integer pageSize, Integer status) {
-        Long userId = getCurrentUserId();
-        
         Page<Repair> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Repair> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Repair::getUserId, userId);
         if (status != null) {
             queryWrapper.eq(Repair::getStatus, status);
         }
@@ -75,13 +73,7 @@ public class RepairServiceImpl implements RepairService {
         if (repair == null) {
             throw new BusinessException("报修记录不存在");
         }
-        
-        // 验证是否是自己的报修
-        Long userId = getCurrentUserId();
-        if (!repair.getUserId().equals(userId)) {
-            throw new BusinessException("无权查看该报修记录");
-        }
-        
+
         return convertToVO(repair);
     }
     
@@ -91,16 +83,50 @@ public class RepairServiceImpl implements RepairService {
         if (repair == null) {
             throw new BusinessException("报修记录不存在");
         }
-        
-        // 验证是否是自己的报修
-        Long userId = getCurrentUserId();
-        if (!repair.getUserId().equals(userId)) {
-            throw new BusinessException("无权删除该报修记录");
-        }
-        
+
         repairMapper.deleteById(id);
     }
-    
+
+    @Override
+    public RepairVO assign(Long id, Long handlerId) {
+        Repair repair = repairMapper.selectById(id);
+        if (repair == null) {
+            throw new BusinessException("报修记录不存在");
+        }
+        if (repair.getStatus() != Repair.STATUS_PENDING) {
+            throw new BusinessException("只能指派待处理的报修");
+        }
+
+        User handler = userMapper.selectById(handlerId);
+        if (handler == null) {
+            throw new BusinessException("维修人员不存在");
+        }
+
+        repair.setHandlerId(handlerId);
+        repair.setStatus(Repair.STATUS_PROCESSING);
+        repairMapper.updateById(repair);
+
+        return convertToVO(repair);
+    }
+
+    @Override
+    public RepairVO complete(Long id, String handleResult) {
+        Repair repair = repairMapper.selectById(id);
+        if (repair == null) {
+            throw new BusinessException("报修记录不存在");
+        }
+        if (repair.getStatus() == Repair.STATUS_COMPLETED || repair.getStatus() == Repair.STATUS_CLOSED) {
+            throw new BusinessException("该报修已完成或已关闭");
+        }
+
+        repair.setStatus(Repair.STATUS_COMPLETED);
+        repair.setHandleResult(handleResult);
+        repair.setHandleTime(LocalDateTime.now());
+        repairMapper.updateById(repair);
+
+        return convertToVO(repair);
+    }
+
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {

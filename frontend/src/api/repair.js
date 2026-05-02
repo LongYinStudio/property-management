@@ -33,3 +33,21 @@ export function deleteRepair(id) {
     method: "delete",
   });
 }
+
+// 指派维修人员
+export function assignRepair(id, data) {
+  return request({
+    url: `/repair/${id}/assign`,
+    method: "post",
+    data,
+  });
+}
+
+// 完成报修处理
+export function completeRepair(id, data) {
+  return request({
+    url: `/repair/${id}/complete`,
+    method: "post",
+    data,
+  });
+}
