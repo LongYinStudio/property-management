@@ -162,11 +162,18 @@ const handleCommand = (command) => {
 .main-layout {
   width: 100%;
   height: 100vh;
+  overflow: hidden;
+
+  > .el-container {
+    height: 100%;
+  }
 }
 
 .sidebar {
   background-color: #304156;
   transition: width 0.3s;
+  height: 100vh;
+  overflow-y: auto;
 
   .logo {
     height: 60px;
@@ -240,5 +247,7 @@ const handleCommand = (command) => {
     linear-gradient(180deg, #eef4f8 0%, #f8fafc 38%, #f2f5fa 100%);
   padding: 24px;
   min-height: calc(100vh - 60px);
+  height: calc(100vh - 60px);
+  overflow-y: auto;
 }
 </style>
