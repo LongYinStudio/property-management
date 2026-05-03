@@ -235,8 +235,10 @@ const handleCommand = (command) => {
 }
 
 .main-content {
-  background-color: #f0f2f5;
-  padding: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.08), transparent 20%),
+    linear-gradient(180deg, #eef4f8 0%, #f8fafc 38%, #f2f5fa 100%);
+  padding: 24px;
   min-height: calc(100vh - 60px);
 }
 </style>
