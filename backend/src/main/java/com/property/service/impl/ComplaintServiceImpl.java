@@ -8,17 +8,17 @@ import com.property.entity.Complaint;
 import com.property.entity.User;
 import com.property.mapper.ComplaintMapper;
 import com.property.mapper.UserMapper;
-import com.property.security.LoginUser;
+import com.property.security.SecurityUtils;
 import com.property.service.ComplaintService;
 import com.property.vo.ComplaintVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 /**
  * 投诉建议服务实现
@@ -34,7 +34,7 @@ public class ComplaintServiceImpl implements ComplaintService {
     
     @Override
     public ComplaintVO create(ComplaintRequest request) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         
         Complaint complaint = new Complaint();
         complaint.setUserId(userId);
@@ -51,8 +51,12 @@ public class ComplaintServiceImpl implements ComplaintService {
     
     @Override
     public Page<ComplaintVO> getPage(Integer pageNum, Integer pageSize, Integer type) {
+        User currentUser = SecurityUtils.getCurrentUser();
         Page<Complaint> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Complaint> queryWrapper = new LambdaQueryWrapper<>();
+        if (!SecurityUtils.isManager(currentUser)) {
+            queryWrapper.eq(Complaint::getUserId, currentUser.getId());
+        }
         if (type != null) {
             queryWrapper.eq(Complaint::getType, type);
         }
@@ -72,6 +76,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         if (complaint == null) {
             throw new BusinessException("投诉建议记录不存在");
         }
+        validateAccess(SecurityUtils.getCurrentUser(), complaint.getUserId(), "无权查看该投诉建议");
 
         return convertToVO(complaint);
     }
@@ -82,6 +87,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         if (complaint == null) {
             throw new BusinessException("投诉建议记录不存在");
         }
+        validateAccess(SecurityUtils.getCurrentUser(), complaint.getUserId(), "无权删除该投诉建议");
 
         complaintMapper.deleteById(id);
     }
@@ -96,7 +102,7 @@ public class ComplaintServiceImpl implements ComplaintService {
             throw new BusinessException("该投诉建议已关闭");
         }
 
-        Long handlerId = getCurrentUserId();
+        Long handlerId = SecurityUtils.getCurrentUserId();
         complaint.setHandlerId(handlerId);
         complaint.setReply(reply);
         complaint.setReplyTime(LocalDateTime.now());
@@ -122,14 +128,13 @@ public class ComplaintServiceImpl implements ComplaintService {
         return convertToVO(complaint);
     }
     
-    private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new BusinessException("用户未登录");
+    private void validateAccess(User currentUser, Long ownerId, String message) {
+        if (SecurityUtils.isManager(currentUser)) {
+            return;
         }
-        
-        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
-        return loginUser.getUser().getId();
+        if (!Objects.equals(ownerId, currentUser.getId())) {
+            throw new AccessDeniedException(message);
+        }
     }
     
     private ComplaintVO convertToVO(Complaint complaint) {

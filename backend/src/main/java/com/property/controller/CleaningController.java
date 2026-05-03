@@ -26,6 +26,7 @@ public class CleaningController {
      * 新增清洁任务
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<CleaningVO> create(@Valid @RequestBody CleaningRequest request) {
         return Result.success("提交成功", cleaningService.create(request));
     }
@@ -34,6 +35,7 @@ public class CleaningController {
      * 分页查询清洁任务列表
      */
     @GetMapping("/page")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<Page<CleaningVO>> getPage(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
@@ -45,6 +47,7 @@ public class CleaningController {
      * 获取清洁任务详情
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<CleaningVO> getById(@PathVariable Long id) {
         return Result.success(cleaningService.getById(id));
     }
@@ -53,7 +56,7 @@ public class CleaningController {
      * 删除清洁任务
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<Void> delete(@PathVariable Long id) {
         cleaningService.delete(id);
         return Result.success("删除成功", null);

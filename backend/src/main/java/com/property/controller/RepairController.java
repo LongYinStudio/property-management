@@ -26,6 +26,7 @@ public class RepairController {
      * 新增报修
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<RepairVO> create(@Valid @RequestBody RepairRequest request) {
         return Result.success("提交成功", repairService.create(request));
     }
@@ -34,6 +35,7 @@ public class RepairController {
      * 分页查询报修列表
      */
     @GetMapping("/page")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<Page<RepairVO>> getPage(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
@@ -45,6 +47,7 @@ public class RepairController {
      * 获取报修详情
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<RepairVO> getById(@PathVariable Long id) {
         return Result.success(repairService.getById(id));
     }
@@ -53,7 +56,7 @@ public class RepairController {
      * 删除报修
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<Void> delete(@PathVariable Long id) {
         repairService.delete(id);
         return Result.success("删除成功", null);

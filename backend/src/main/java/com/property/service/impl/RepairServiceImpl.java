@@ -8,17 +8,17 @@ import com.property.entity.Repair;
 import com.property.entity.User;
 import com.property.mapper.RepairMapper;
 import com.property.mapper.UserMapper;
-import com.property.security.LoginUser;
+import com.property.security.SecurityUtils;
 import com.property.service.RepairService;
 import com.property.vo.RepairVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 /**
  * 报修服务实现
@@ -34,7 +34,7 @@ public class RepairServiceImpl implements RepairService {
     
     @Override
     public RepairVO create(RepairRequest request) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         
         Repair repair = new Repair();
         repair.setUserId(userId);
@@ -52,8 +52,12 @@ public class RepairServiceImpl implements RepairService {
     
     @Override
     public Page<RepairVO> getPage(Integer pageNum, Integer pageSize, Integer status) {
+        User currentUser = SecurityUtils.getCurrentUser();
         Page<Repair> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Repair> queryWrapper = new LambdaQueryWrapper<>();
+        if (!SecurityUtils.isManager(currentUser)) {
+            queryWrapper.eq(Repair::getUserId, currentUser.getId());
+        }
         if (status != null) {
             queryWrapper.eq(Repair::getStatus, status);
         }
@@ -73,6 +77,7 @@ public class RepairServiceImpl implements RepairService {
         if (repair == null) {
             throw new BusinessException("报修记录不存在");
         }
+        validateAccess(SecurityUtils.getCurrentUser(), repair.getUserId(), "无权查看该报修记录");
 
         return convertToVO(repair);
     }
@@ -83,6 +88,7 @@ public class RepairServiceImpl implements RepairService {
         if (repair == null) {
             throw new BusinessException("报修记录不存在");
         }
+        validateAccess(SecurityUtils.getCurrentUser(), repair.getUserId(), "无权删除该报修记录");
 
         repairMapper.deleteById(id);
     }
@@ -127,14 +133,13 @@ public class RepairServiceImpl implements RepairService {
         return convertToVO(repair);
     }
 
-    private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new BusinessException("用户未登录");
+    private void validateAccess(User currentUser, Long ownerId, String message) {
+        if (SecurityUtils.isManager(currentUser)) {
+            return;
         }
-        
-        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
-        return loginUser.getUser().getId();
+        if (!Objects.equals(ownerId, currentUser.getId())) {
+            throw new AccessDeniedException(message);
+        }
     }
     
     private RepairVO convertToVO(Repair repair) {

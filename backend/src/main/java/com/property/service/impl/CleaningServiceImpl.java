@@ -8,17 +8,17 @@ import com.property.entity.Cleaning;
 import com.property.entity.User;
 import com.property.mapper.CleaningMapper;
 import com.property.mapper.UserMapper;
-import com.property.security.LoginUser;
+import com.property.security.SecurityUtils;
 import com.property.service.CleaningService;
 import com.property.vo.CleaningVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 /**
  * 清洁服务实现
@@ -34,7 +34,7 @@ public class CleaningServiceImpl implements CleaningService {
     
     @Override
     public CleaningVO create(CleaningRequest request) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         
         Cleaning cleaning = new Cleaning();
         cleaning.setUserId(userId);
@@ -51,9 +51,12 @@ public class CleaningServiceImpl implements CleaningService {
     
     @Override
     public Page<CleaningVO> getPage(Integer pageNum, Integer pageSize, Integer status) {
+        User currentUser = SecurityUtils.getCurrentUser();
         Page<Cleaning> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Cleaning> queryWrapper = new LambdaQueryWrapper<>();
-        // queryWrapper.eq(Cleaning::getUserId, userId);
+        if (!SecurityUtils.isManager(currentUser)) {
+            queryWrapper.eq(Cleaning::getUserId, currentUser.getId());
+        }
         if (status != null) {
             queryWrapper.eq(Cleaning::getStatus, status);
         }
@@ -73,6 +76,7 @@ public class CleaningServiceImpl implements CleaningService {
         if (cleaning == null) {
             throw new BusinessException("清洁任务不存在");
         }
+        validateAccess(SecurityUtils.getCurrentUser(), cleaning.getUserId(), "无权查看该清洁任务");
 
         return convertToVO(cleaning);
     }
@@ -83,6 +87,7 @@ public class CleaningServiceImpl implements CleaningService {
         if (cleaning == null) {
             throw new BusinessException("清洁任务不存在");
         }
+        validateAccess(SecurityUtils.getCurrentUser(), cleaning.getUserId(), "无权删除该清洁任务");
 
         cleaningMapper.deleteById(id);
     }
@@ -127,14 +132,13 @@ public class CleaningServiceImpl implements CleaningService {
         return convertToVO(cleaning);
     }
 
-    private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new BusinessException("用户未登录");
+    private void validateAccess(User currentUser, Long ownerId, String message) {
+        if (SecurityUtils.isManager(currentUser)) {
+            return;
         }
-        
-        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
-        return loginUser.getUser().getId();
+        if (!Objects.equals(ownerId, currentUser.getId())) {
+            throw new AccessDeniedException(message);
+        }
     }
     
     private CleaningVO convertToVO(Cleaning cleaning) {

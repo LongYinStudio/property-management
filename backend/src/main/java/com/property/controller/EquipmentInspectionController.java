@@ -7,6 +7,7 @@ import com.property.service.EquipmentInspectionService;
 import com.property.vo.EquipmentInspectionVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -23,6 +24,7 @@ public class EquipmentInspectionController {
      * 新增设备巡检记录
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<EquipmentInspectionVO> create(@Valid @RequestBody EquipmentInspectionRequest request) {
         return Result.success("提交成功", equipmentInspectionService.create(request));
     }
@@ -31,6 +33,7 @@ public class EquipmentInspectionController {
      * 分页查询设备巡检记录
      */
     @GetMapping("/page")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<Page<EquipmentInspectionVO>> getPage(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
@@ -43,6 +46,7 @@ public class EquipmentInspectionController {
      * 获取设备巡检记录详情
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<EquipmentInspectionVO> getById(@PathVariable Long id) {
         return Result.success(equipmentInspectionService.getById(id));
     }
@@ -51,6 +55,7 @@ public class EquipmentInspectionController {
      * 删除设备巡检记录
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<Void> delete(@PathVariable Long id) {
         equipmentInspectionService.delete(id);
         return Result.success("删除成功", null);

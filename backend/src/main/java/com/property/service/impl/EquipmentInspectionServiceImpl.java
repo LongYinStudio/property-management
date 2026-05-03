@@ -8,16 +8,16 @@ import com.property.entity.EquipmentInspection;
 import com.property.entity.User;
 import com.property.mapper.EquipmentInspectionMapper;
 import com.property.mapper.UserMapper;
-import com.property.security.LoginUser;
+import com.property.security.SecurityUtils;
 import com.property.service.EquipmentInspectionService;
 import com.property.vo.EquipmentInspectionVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 /**
  * 设备巡检服务实现
@@ -34,7 +34,7 @@ public class EquipmentInspectionServiceImpl implements EquipmentInspectionServic
 
     @Override
     public EquipmentInspectionVO create(EquipmentInspectionRequest request) {
-        Long userId = getCurrentUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
 
         EquipmentInspection inspection = new EquipmentInspection();
         inspection.setUserId(userId);
@@ -57,8 +57,12 @@ public class EquipmentInspectionServiceImpl implements EquipmentInspectionServic
 
     @Override
     public Page<EquipmentInspectionVO> getPage(Integer pageNum, Integer pageSize, Integer status, Integer equipmentType) {
+        User currentUser = SecurityUtils.getCurrentUser();
         Page<EquipmentInspection> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<EquipmentInspection> queryWrapper = new LambdaQueryWrapper<>();
+        if (!SecurityUtils.isManager(currentUser)) {
+            queryWrapper.eq(EquipmentInspection::getUserId, currentUser.getId());
+        }
         if (status != null) {
             queryWrapper.eq(EquipmentInspection::getStatus, status);
         }
@@ -82,6 +86,7 @@ public class EquipmentInspectionServiceImpl implements EquipmentInspectionServic
         if (inspection == null) {
             throw new BusinessException("设备巡检记录不存在");
         }
+        validateAccess(SecurityUtils.getCurrentUser(), inspection.getUserId(), "无权查看该设备巡检记录");
 
         return convertToVO(inspection);
     }
@@ -92,18 +97,18 @@ public class EquipmentInspectionServiceImpl implements EquipmentInspectionServic
         if (inspection == null) {
             throw new BusinessException("设备巡检记录不存在");
         }
+        validateAccess(SecurityUtils.getCurrentUser(), inspection.getUserId(), "无权删除该设备巡检记录");
 
         equipmentInspectionMapper.deleteById(id);
     }
 
-    private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new BusinessException("用户未登录");
+    private void validateAccess(User currentUser, Long ownerId, String message) {
+        if (SecurityUtils.isManager(currentUser)) {
+            return;
         }
-
-        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
-        return loginUser.getUser().getId();
+        if (!Objects.equals(ownerId, currentUser.getId())) {
+            throw new AccessDeniedException(message);
+        }
     }
 
     private EquipmentInspectionVO convertToVO(EquipmentInspection inspection) {

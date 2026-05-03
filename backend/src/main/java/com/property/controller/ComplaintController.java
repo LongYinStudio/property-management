@@ -25,6 +25,7 @@ public class ComplaintController {
      * 新增投诉/建议
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<ComplaintVO> create(@Valid @RequestBody ComplaintRequest request) {
         return Result.success("提交成功", complaintService.create(request));
     }
@@ -33,6 +34,7 @@ public class ComplaintController {
      * 分页查询投诉/建议列表
      */
     @GetMapping("/page")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<Page<ComplaintVO>> getPage(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
@@ -44,6 +46,7 @@ public class ComplaintController {
      * 获取投诉/建议详情
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<ComplaintVO> getById(@PathVariable Long id) {
         return Result.success(complaintService.getById(id));
     }
@@ -52,7 +55,7 @@ public class ComplaintController {
      * 删除投诉/建议
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'OWNER')")
     public Result<Void> delete(@PathVariable Long id) {
         complaintService.delete(id);
         return Result.success("删除成功", null);
