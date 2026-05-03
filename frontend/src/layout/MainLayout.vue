@@ -42,6 +42,10 @@
             <el-icon><Location /></el-icon>
             <span>车位管理</span>
           </el-menu-item>
+          <el-menu-item index="/notice">
+            <el-icon><Bell /></el-icon>
+            <span>通知公告</span>
+          </el-menu-item>
           <el-menu-item index="/complaint">
             <el-icon><ChatDotSquare /></el-icon>
             <span>投诉建议</span>
