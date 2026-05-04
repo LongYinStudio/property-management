@@ -81,6 +81,18 @@ class DtoValidationTest {
         assertTrue(messages.contains("占地面积必须大于0"));
     }
 
+    @Test
+    void complaintRequestShouldRejectOverlongImages() {
+        ComplaintRequest request = new ComplaintRequest();
+        request.setTitle("投诉标题");
+        request.setType(1);
+        request.setImages("a".repeat(1001));
+
+        Set<String> messages = validate(request);
+
+        assertTrue(messages.contains("图片地址长度不能超过1000位"));
+    }
+
     private Set<String> validate(Object target) {
         return VALIDATOR.validate(target).stream()
                 .map(ConstraintViolation::getMessage)

@@ -19,6 +19,9 @@ public class ComplaintRequest {
     
     @Size(max = 1000, message = "内容长度不能超过1000位")
     private String content;
+
+    @Size(max = 1000, message = "图片地址长度不能超过1000位")
+    private String images;
     
     @NotNull(message = "类型不能为空")
     @Min(value = 1, message = "类型值不正确")

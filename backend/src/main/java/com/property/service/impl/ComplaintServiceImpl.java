@@ -40,6 +40,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         complaint.setUserId(userId);
         complaint.setTitle(request.getTitle());
         complaint.setContent(request.getContent());
+        complaint.setImages(request.getImages());
         complaint.setType(request.getType());
         complaint.setStatus(Complaint.STATUS_PENDING);
         complaint.setDeleted(0);

@@ -174,6 +174,7 @@ CREATE TABLE `complaint` (
     `user_id` BIGINT NOT NULL COMMENT '用户ID',
     `title` VARCHAR(100) NOT NULL COMMENT '标题',
     `content` TEXT COMMENT '内容',
+    `images` VARCHAR(1000) DEFAULT NULL COMMENT '图片地址（逗号分隔）',
     `type` TINYINT NOT NULL DEFAULT 1 COMMENT '类型：1-投诉 2-建议',
     `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-待处理 1-已回复 2-已关闭',
     `handler_id` BIGINT DEFAULT NULL COMMENT '处理人ID',

@@ -17,6 +17,8 @@ public class ComplaintVO {
     private String title;
     
     private String content;
+
+    private String images;
     
     private Integer type;
     
