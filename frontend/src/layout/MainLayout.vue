@@ -22,6 +22,10 @@
             <el-icon><User /></el-icon>
             <span>用户管理</span>
           </el-menu-item>
+          <el-menu-item index="/community" v-if="userStore.userInfo?.role !== 3">
+            <el-icon><OfficeBuilding /></el-icon>
+            <span>小区管理</span>
+          </el-menu-item>
           <el-menu-item index="/repair">
             <el-icon><Tools /></el-icon>
             <span>报修管理</span>

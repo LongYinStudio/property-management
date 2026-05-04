@@ -69,6 +69,18 @@ class DtoValidationTest {
         assertTrue(messages.contains("结束日期不能早于开始日期"));
     }
 
+    @Test
+    void communityRequestShouldRequireNameAndPositiveArea() {
+        CommunityRequest request = new CommunityRequest();
+        request.setName(" ");
+        request.setArea(BigDecimal.ZERO);
+
+        Set<String> messages = validate(request);
+
+        assertTrue(messages.contains("小区名称不能为空"));
+        assertTrue(messages.contains("占地面积必须大于0"));
+    }
+
     private Set<String> validate(Object target) {
         return VALIDATOR.validate(target).stream()
                 .map(ConstraintViolation::getMessage)

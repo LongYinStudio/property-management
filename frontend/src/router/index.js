@@ -27,6 +27,12 @@ const routes = [
         meta: { title: "用户管理", icon: "User" },
       },
       {
+        path: "community",
+        name: "Community",
+        component: () => import("@/views/community/Index.vue"),
+        meta: { title: "小区管理", icon: "OfficeBuilding" },
+      },
+      {
         path: "repair",
         name: "Repair",
         component: () => import("@/views/repair/Index.vue"),
