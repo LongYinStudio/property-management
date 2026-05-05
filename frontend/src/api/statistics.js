@@ -8,6 +8,14 @@ export function getDashboardStats() {
   });
 }
 
+// 获取业务总览数据
+export function getBusinessOverview() {
+  return request({
+    url: "/statistics/business-overview",
+    method: "get",
+  });
+}
+
 // 获取费用类型统计
 export function getFeeTypeStats(params) {
   return request({
@@ -54,6 +62,62 @@ export function getComplaintTypeStats() {
 export function getCleaningStats() {
   return request({
     url: "/statistics/cleaning",
+    method: "get",
+  });
+}
+
+// 获取访客状态统计
+export function getVisitorStatusStats() {
+  return request({
+    url: "/statistics/visitor-status",
+    method: "get",
+  });
+}
+
+// 获取车位状态统计
+export function getParkingSpaceStatusStats() {
+  return request({
+    url: "/statistics/parking-space-status",
+    method: "get",
+  });
+}
+
+// 获取车位租赁状态统计
+export function getParkingRentalStatusStats() {
+  return request({
+    url: "/statistics/parking-rental-status",
+    method: "get",
+  });
+}
+
+// 获取巡检状态统计
+export function getInspectionStatusStats() {
+  return request({
+    url: "/statistics/inspection-status",
+    method: "get",
+  });
+}
+
+// 获取合同状态统计
+export function getContractStatusStats() {
+  return request({
+    url: "/statistics/contract-status",
+    method: "get",
+  });
+}
+
+// 获取投票活动类型统计
+export function getVoteTypeStats() {
+  return request({
+    url: "/statistics/vote-type",
+    method: "get",
+  });
+}
+
+// 获取公告类型统计
+export function getNoticeTypeStats() {
+  return request({
+    url: "/statistics/notice-type",
     method: "get",
   });
 }

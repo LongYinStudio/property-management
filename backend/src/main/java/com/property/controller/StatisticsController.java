@@ -25,7 +25,15 @@ public class StatisticsController {
     public Result<StatisticsVO.DashboardStats> getDashboardStats() {
         return Result.success(statisticsService.getDashboardStats());
     }
-    
+
+    /**
+     * 获取业务总览数据
+     */
+    @GetMapping("/business-overview")
+    public Result<StatisticsVO.BusinessOverview> getBusinessOverview() {
+        return Result.success(statisticsService.getBusinessOverview());
+    }
+
     /**
      * 获取费用类型统计
      */
@@ -74,5 +82,61 @@ public class StatisticsController {
     @GetMapping("/cleaning")
     public Result<List<StatisticsVO.CleaningStats>> getCleaningStats() {
         return Result.success(statisticsService.getCleaningStats());
+    }
+
+    /**
+     * 获取访客状态统计
+     */
+    @GetMapping("/visitor-status")
+    public Result<List<StatisticsVO.CategoryStats>> getVisitorStatusStats() {
+        return Result.success(statisticsService.getVisitorStatusStats());
+    }
+
+    /**
+     * 获取车位状态统计
+     */
+    @GetMapping("/parking-space-status")
+    public Result<List<StatisticsVO.CategoryStats>> getParkingSpaceStatusStats() {
+        return Result.success(statisticsService.getParkingSpaceStatusStats());
+    }
+
+    /**
+     * 获取车位租赁状态统计
+     */
+    @GetMapping("/parking-rental-status")
+    public Result<List<StatisticsVO.CategoryStats>> getParkingRentalStatusStats() {
+        return Result.success(statisticsService.getParkingRentalStatusStats());
+    }
+
+    /**
+     * 获取设备巡检状态统计
+     */
+    @GetMapping("/inspection-status")
+    public Result<List<StatisticsVO.CategoryStats>> getInspectionStatusStats() {
+        return Result.success(statisticsService.getInspectionStatusStats());
+    }
+
+    /**
+     * 获取合同状态统计
+     */
+    @GetMapping("/contract-status")
+    public Result<List<StatisticsVO.CategoryStats>> getContractStatusStats() {
+        return Result.success(statisticsService.getContractStatusStats());
+    }
+
+    /**
+     * 获取投票活动类型统计
+     */
+    @GetMapping("/vote-type")
+    public Result<List<StatisticsVO.CategoryStats>> getVoteTypeStats() {
+        return Result.success(statisticsService.getVoteTypeStats());
+    }
+
+    /**
+     * 获取公告类型统计
+     */
+    @GetMapping("/notice-type")
+    public Result<List<StatisticsVO.CategoryStats>> getNoticeTypeStats() {
+        return Result.success(statisticsService.getNoticeTypeStats());
     }
 }

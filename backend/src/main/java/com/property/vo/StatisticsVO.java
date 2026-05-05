@@ -3,8 +3,6 @@ package com.property.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 统计数据VO
@@ -27,6 +25,29 @@ public class StatisticsVO {
         private Long pendingComplaint;
         /** 待处理清洁任务数 */
         private Long pendingCleaning;
+    }
+
+    /**
+     * 业务总览数据
+     */
+    @Data
+    public static class BusinessOverview {
+        /** 业主总数 */
+        private Long ownerCount;
+        /** 车位总数 */
+        private Long parkingSpaceCount;
+        /** 已支付租赁数 */
+        private Long paidParkingRentalCount;
+        /** 待通行访客数 */
+        private Long pendingVisitorCount;
+        /** 异常巡检数 */
+        private Long abnormalInspectionCount;
+        /** 生效合同数 */
+        private Long activeContractCount;
+        /** 进行中活动数 */
+        private Long openVoteCount;
+        /** 已发布公告数 */
+        private Long publishedNoticeCount;
     }
     
     /**
@@ -85,6 +106,16 @@ public class StatisticsVO {
     public static class CleaningStats {
         private Integer status;
         private String statusName;
+        private Long count;
+    }
+
+    /**
+     * 通用分类统计
+     */
+    @Data
+    public static class CategoryStats {
+        private Integer value;
+        private String label;
         private Long count;
     }
 }
