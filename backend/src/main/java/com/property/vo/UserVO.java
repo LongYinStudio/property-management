@@ -18,8 +18,11 @@ public class UserVO {
     private String roleName;
     private Integer status;
     private Long communityId;
+    private String communityName;
     private Long buildingId;
+    private String buildingName;
     private Long roomId;
+    private String roomName;
     private String createTime;
     
     public String getRoleName() {

@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.property.common.BusinessException;
 import com.property.dto.EquipmentInspectionRequest;
 import com.property.entity.EquipmentInspection;
+import com.property.entity.Facility;
 import com.property.entity.User;
 import com.property.mapper.EquipmentInspectionMapper;
+import com.property.mapper.FacilityMapper;
 import com.property.mapper.UserMapper;
 import com.property.security.SecurityUtils;
 import com.property.service.EquipmentInspectionService;
@@ -27,6 +29,7 @@ import java.util.Objects;
 public class EquipmentInspectionServiceImpl implements EquipmentInspectionService {
 
     private final EquipmentInspectionMapper equipmentInspectionMapper;
+    private final FacilityMapper facilityMapper;
     private final UserMapper userMapper;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -35,12 +38,14 @@ public class EquipmentInspectionServiceImpl implements EquipmentInspectionServic
     @Override
     public EquipmentInspectionVO create(EquipmentInspectionRequest request) {
         Long userId = SecurityUtils.getCurrentUserId();
+        Facility facility = getFacilityOrThrow(request.getFacilityId());
 
         EquipmentInspection inspection = new EquipmentInspection();
         inspection.setUserId(userId);
-        inspection.setEquipmentName(request.getEquipmentName());
-        inspection.setEquipmentType(request.getEquipmentType());
-        inspection.setLocation(request.getLocation());
+        inspection.setFacilityId(facility.getId());
+        inspection.setEquipmentName(facility.getName());
+        inspection.setEquipmentType(facility.getType());
+        inspection.setLocation(facility.getLocation());
         inspection.setInspectionDate(request.getInspectionDate());
         inspection.setNextInspectionDate(request.getNextInspectionDate());
         inspection.setStatus(request.getStatus());
@@ -51,6 +56,7 @@ public class EquipmentInspectionServiceImpl implements EquipmentInspectionServic
         inspection.setDeleted(0);
 
         equipmentInspectionMapper.insert(inspection);
+        updateFacilityFromInspection(facility, inspection);
 
         return convertToVO(inspection);
     }
@@ -111,6 +117,25 @@ public class EquipmentInspectionServiceImpl implements EquipmentInspectionServic
         }
     }
 
+    private Facility getFacilityOrThrow(Long id) {
+        Facility facility = facilityMapper.selectById(id);
+        if (facility == null) {
+            throw new BusinessException("设备设施不存在");
+        }
+        return facility;
+    }
+
+    private void updateFacilityFromInspection(Facility facility, EquipmentInspection inspection) {
+        facility.setLastCheckDate(inspection.getInspectionDate());
+        facility.setNextCheckDate(inspection.getNextInspectionDate());
+        facility.setStatus(
+                Objects.equals(inspection.getStatus(), EquipmentInspection.STATUS_ABNORMAL)
+                        ? Facility.STATUS_FAULT
+                        : Facility.STATUS_NORMAL
+        );
+        facilityMapper.updateById(facility);
+    }
+
     private EquipmentInspectionVO convertToVO(EquipmentInspection inspection) {
         EquipmentInspectionVO vo = new EquipmentInspectionVO();
         BeanUtils.copyProperties(inspection, vo);
@@ -118,6 +143,15 @@ public class EquipmentInspectionServiceImpl implements EquipmentInspectionServic
         User user = userMapper.selectById(inspection.getUserId());
         if (user != null) {
             vo.setUserName(user.getRealName());
+        }
+        if (inspection.getFacilityId() != null) {
+            Facility facility = facilityMapper.selectById(inspection.getFacilityId());
+            if (facility != null) {
+                vo.setFacilityName(facility.getName());
+            }
+        }
+        if (vo.getFacilityName() == null) {
+            vo.setFacilityName(inspection.getEquipmentName());
         }
 
         if (inspection.getInspectionDate() != null) {

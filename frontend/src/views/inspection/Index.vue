@@ -44,7 +44,11 @@
 
       <el-table :data="tableData" v-loading="loading" style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="equipmentName" label="设备名称" min-width="140" />
+        <el-table-column prop="equipmentName" label="设备名称" min-width="140">
+          <template #default="{ row }">
+            {{ row.facilityName || row.equipmentName || "-" }}
+          </template>
+        </el-table-column>
         <el-table-column prop="equipmentType" label="设备类型" width="120">
           <template #default="{ row }">
             {{ getEquipmentTypeName(row.equipmentType) }}
@@ -104,28 +108,26 @@
         :rules="formRules"
         label-width="110px"
       >
-        <el-form-item label="设备名称" prop="equipmentName">
-          <el-input
-            v-model="formData.equipmentName"
-            placeholder="请输入设备名称"
-          />
-        </el-form-item>
-        <el-form-item label="设备类型" prop="equipmentType">
+        <el-form-item label="关联设施" prop="facilityId">
           <el-select
-            v-model="formData.equipmentType"
-            placeholder="请选择设备类型"
+            v-model="formData.facilityId"
+            placeholder="请选择设施"
+            filterable
             style="width: 100%"
           >
             <el-option
-              v-for="item in equipmentTypeOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
+              v-for="item in facilityOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="设备位置" prop="location">
-          <el-input v-model="formData.location" placeholder="请输入设备位置" />
+        <el-form-item label="设施类型">
+          <el-input :model-value="selectedFacility?.typeName || '请选择设施'" disabled />
+        </el-form-item>
+        <el-form-item label="设备位置">
+          <el-input :model-value="selectedFacility?.location || '请选择设施后自动带出'" disabled />
         </el-form-item>
         <el-form-item label="巡检日期" prop="inspectionDate">
           <el-date-picker
@@ -208,8 +210,8 @@
 
     <el-dialog v-model="viewDialogVisible" title="巡检记录详情" width="560px">
       <el-descriptions :column="1" border>
-        <el-descriptions-item label="设备名称">
-          {{ viewData.equipmentName }}
+        <el-descriptions-item label="关联设施">
+          {{ viewData.facilityName || viewData.equipmentName || "-" }}
         </el-descriptions-item>
         <el-descriptions-item label="设备类型">
           {{ getEquipmentTypeName(viewData.equipmentType) }}
@@ -270,7 +272,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
 import {
@@ -280,6 +282,7 @@ import {
   deleteInspection,
 } from "@/api/inspection";
 import { uploadImage } from "@/api/file";
+import { getFacilityList } from "@/api/facility";
 
 const loading = ref(false);
 const total = ref(0);
@@ -292,6 +295,7 @@ const imageUploading = ref(false);
 const imageUploadCount = ref(0);
 const imagePreviewVisible = ref(false);
 const imagePreviewUrl = ref("");
+const facilityOptions = ref([]);
 
 const equipmentTypeOptions = [
   { label: "消防设施", value: 1 },
@@ -318,9 +322,7 @@ const queryParams = reactive({
 const tableData = ref([]);
 
 const formData = reactive({
-  equipmentName: "",
-  equipmentType: null,
-  location: "",
+  facilityId: null,
   inspectionDate: "",
   nextInspectionDate: "",
   status: 0,
@@ -331,13 +333,7 @@ const formData = reactive({
 });
 
 const formRules = {
-  equipmentName: [
-    { required: true, message: "请输入设备名称", trigger: "blur" },
-  ],
-  equipmentType: [
-    { required: true, message: "请选择设备类型", trigger: "change" },
-  ],
-  location: [{ required: true, message: "请输入设备位置", trigger: "blur" }],
+  facilityId: [{ required: true, message: "请选择设施", trigger: "change" }],
   inspectionDate: [
     { required: true, message: "请选择巡检日期", trigger: "change" },
   ],
@@ -346,6 +342,10 @@ const formRules = {
 };
 
 const viewData = ref({});
+
+const selectedFacility = computed(() =>
+  facilityOptions.value.find((item) => item.id === formData.facilityId) || null
+);
 
 const getEquipmentTypeName = (type) => {
   return equipmentTypeOptions.find((item) => item.value === type)?.label || "未知";
@@ -373,6 +373,11 @@ const fetchData = async () => {
   }
 };
 
+const loadFacilityOptions = async () => {
+  const res = await getFacilityList();
+  facilityOptions.value = res.data || [];
+};
+
 const handleSearch = () => {
   queryParams.pageNum = 1;
   fetchData();
@@ -385,9 +390,7 @@ const handleReset = () => {
 };
 
 const resetForm = () => {
-  formData.equipmentName = "";
-  formData.equipmentType = null;
-  formData.location = "";
+  formData.facilityId = null;
   formData.inspectionDate = "";
   formData.nextInspectionDate = "";
   formData.status = 0;
@@ -523,6 +526,7 @@ const handleDelete = (row) => {
 };
 
 onMounted(() => {
+  loadFacilityOptions();
   fetchData();
 });
 </script>

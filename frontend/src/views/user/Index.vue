@@ -35,6 +35,21 @@
         <el-table-column prop="username" label="用户名" />
         <el-table-column prop="realName" label="真实姓名" />
         <el-table-column prop="phone" label="手机号" />
+        <el-table-column prop="communityName" label="小区" min-width="140" show-overflow-tooltip>
+          <template #default="{ row }">
+            {{ row.communityName || "-" }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="buildingName" label="楼栋" min-width="120" show-overflow-tooltip>
+          <template #default="{ row }">
+            {{ row.buildingName || "-" }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="roomName" label="房屋" min-width="160" show-overflow-tooltip>
+          <template #default="{ row }">
+            {{ row.roomName || "-" }}
+          </template>
+        </el-table-column>
         <el-table-column prop="role" label="角色">
           <template #default="{ row }">
             <el-tag :type="getRoleType(row.role)">{{
@@ -85,7 +100,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="dialogTitle"
-      width="500px"
+      width="720px"
       @closed="handleDialogClosed"
     >
       <el-form
@@ -127,6 +142,60 @@
             <el-radio :value="0">禁用</el-radio>
           </el-radio-group>
         </el-form-item>
+        <div class="form-grid">
+          <el-form-item label="小区" prop="communityId">
+            <el-select
+              v-model="formData.communityId"
+              placeholder="请选择小区"
+              clearable
+              filterable
+              style="width: 100%"
+              @change="handleCommunityChange"
+            >
+              <el-option
+                v-for="item in communityOptions"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="楼栋" prop="buildingId">
+            <el-select
+              v-model="formData.buildingId"
+              placeholder="请选择楼栋"
+              clearable
+              filterable
+              :disabled="!formData.communityId"
+              style="width: 100%"
+              @change="handleBuildingChange"
+            >
+              <el-option
+                v-for="item in buildingOptions"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="房屋" prop="roomId" class="form-grid__full">
+            <el-select
+              v-model="formData.roomId"
+              placeholder="请选择房屋"
+              clearable
+              filterable
+              :disabled="!formData.buildingId"
+              style="width: 100%"
+            >
+              <el-option
+                v-for="item in roomOptions"
+                :key="item.id"
+                :label="item.displayName || item.roomNumber"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+        </div>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -149,6 +218,9 @@ import {
   deleteUser,
   updateUserStatus,
 } from "@/api/user";
+import { getCommunityList } from "@/api/community";
+import { getBuildingList } from "@/api/building";
+import { getRoomList } from "@/api/room";
 
 const loading = ref(false);
 const total = ref(0);
@@ -157,6 +229,9 @@ const dialogVisible = ref(false);
 const formRef = ref(null);
 const isEdit = ref(false);
 const editId = ref(null);
+const communityOptions = ref([]);
+const buildingOptions = ref([]);
+const roomOptions = ref([]);
 
 const queryParams = reactive({
   pageNum: 1,
@@ -175,6 +250,9 @@ const formData = reactive({
   email: "",
   role: null,
   status: 1,
+  communityId: null,
+  buildingId: null,
+  roomId: null,
 });
 
 const formRules = {
@@ -209,6 +287,29 @@ const fetchData = async () => {
   }
 };
 
+const loadCommunityOptions = async () => {
+  const res = await getCommunityList();
+  communityOptions.value = res.data || [];
+};
+
+const loadBuildingOptions = async (communityId) => {
+  if (!communityId) {
+    buildingOptions.value = [];
+    return;
+  }
+  const res = await getBuildingList({ communityId });
+  buildingOptions.value = res.data || [];
+};
+
+const loadRoomOptions = async (buildingId) => {
+  if (!buildingId) {
+    roomOptions.value = [];
+    return;
+  }
+  const res = await getRoomList({ buildingId });
+  roomOptions.value = res.data || [];
+};
+
 const handleSearch = () => {
   queryParams.pageNum = 1;
   fetchData();
@@ -220,10 +321,11 @@ const handleReset = () => {
   handleSearch();
 };
 
-const handleAdd = () => {
+const handleAdd = async () => {
   isEdit.value = false;
   editId.value = null;
   resetForm();
+  await loadCommunityOptions();
   dialogVisible.value = true;
 };
 
@@ -231,6 +333,7 @@ const handleEdit = async (row) => {
   isEdit.value = true;
   editId.value = row.id;
   try {
+    await loadCommunityOptions();
     const res = await getUserById(row.id);
     const user = res.data;
     formData.username = user.username;
@@ -240,6 +343,11 @@ const handleEdit = async (row) => {
     formData.email = user.email;
     formData.role = user.role;
     formData.status = user.status;
+    formData.communityId = user.communityId;
+    await loadBuildingOptions(user.communityId);
+    formData.buildingId = user.buildingId;
+    await loadRoomOptions(user.buildingId);
+    formData.roomId = user.roomId;
     dialogVisible.value = true;
   } catch (error) {
     console.error(error);
@@ -297,6 +405,18 @@ const handleSubmit = async () => {
   }
 };
 
+const handleCommunityChange = async (value) => {
+  formData.buildingId = null;
+  formData.roomId = null;
+  roomOptions.value = [];
+  await loadBuildingOptions(value);
+};
+
+const handleBuildingChange = async (value) => {
+  formData.roomId = null;
+  await loadRoomOptions(value);
+};
+
 const handleDialogClosed = () => {
   formRef.value?.resetFields();
   resetForm();
@@ -310,9 +430,15 @@ const resetForm = () => {
   formData.email = "";
   formData.role = null;
   formData.status = 1;
+  formData.communityId = null;
+  formData.buildingId = null;
+  formData.roomId = null;
+  buildingOptions.value = [];
+  roomOptions.value = [];
 };
 
 onMounted(() => {
+  loadCommunityOptions();
   fetchData();
 });
 </script>
@@ -323,5 +449,25 @@ onMounted(() => {
 }
 .mt-20 {
   margin-top: 20px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+
+  &__full {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+
+    &__full {
+      grid-column: auto;
+    }
+  }
 }
 </style>

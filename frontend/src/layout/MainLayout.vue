@@ -26,6 +26,18 @@
             <el-icon><OfficeBuilding /></el-icon>
             <span>小区管理</span>
           </el-menu-item>
+          <el-menu-item index="/building" v-if="userStore.userInfo?.role !== 3">
+            <el-icon><Grid /></el-icon>
+            <span>楼栋管理</span>
+          </el-menu-item>
+          <el-menu-item index="/room" v-if="userStore.userInfo?.role !== 3">
+            <el-icon><House /></el-icon>
+            <span>房屋管理</span>
+          </el-menu-item>
+          <el-menu-item index="/facility" v-if="userStore.userInfo?.role !== 3">
+            <el-icon><Cpu /></el-icon>
+            <span>设备台账</span>
+          </el-menu-item>
           <el-menu-item index="/repair">
             <el-icon><Tools /></el-icon>
             <span>报修管理</span>

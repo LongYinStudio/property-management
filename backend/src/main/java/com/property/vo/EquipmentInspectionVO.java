@@ -14,6 +14,10 @@ public class EquipmentInspectionVO {
 
     private String userName;
 
+    private Long facilityId;
+
+    private String facilityName;
+
     private String equipmentName;
 
     private Integer equipmentType;

@@ -33,6 +33,24 @@ const routes = [
         meta: { title: "小区管理", icon: "OfficeBuilding" },
       },
       {
+        path: "building",
+        name: "Building",
+        component: () => import("@/views/building/Index.vue"),
+        meta: { title: "楼栋管理", icon: "Grid" },
+      },
+      {
+        path: "room",
+        name: "Room",
+        component: () => import("@/views/room/Index.vue"),
+        meta: { title: "房屋管理", icon: "House" },
+      },
+      {
+        path: "facility",
+        name: "Facility",
+        component: () => import("@/views/facility/Index.vue"),
+        meta: { title: "设备台账", icon: "Cpu" },
+      },
+      {
         path: "repair",
         name: "Repair",
         component: () => import("@/views/repair/Index.vue"),

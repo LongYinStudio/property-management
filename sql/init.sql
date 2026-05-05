@@ -308,6 +308,7 @@ DROP TABLE IF EXISTS `equipment_inspection`;
 CREATE TABLE `equipment_inspection` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '巡检记录ID',
     `user_id` BIGINT NOT NULL COMMENT '巡检人ID',
+    `facility_id` BIGINT DEFAULT NULL COMMENT '设施ID',
     `equipment_name` VARCHAR(100) NOT NULL COMMENT '设备名称',
     `equipment_type` TINYINT NOT NULL COMMENT '设备类型：1-消防设施 2-电梯 3-监控 4-给排水 5-配电 6-其他',
     `location` VARCHAR(255) NOT NULL COMMENT '设备位置',
@@ -323,6 +324,7 @@ CREATE TABLE `equipment_inspection` (
     `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记',
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
+    KEY `idx_facility_id` (`facility_id`),
     KEY `idx_equipment_type` (`equipment_type`),
     KEY `idx_status` (`status`),
     KEY `idx_inspection_date` (`inspection_date`)

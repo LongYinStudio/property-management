@@ -21,6 +21,8 @@ public class EquipmentInspection implements Serializable {
 
     private Long userId;
 
+    private Long facilityId;
+
     private String equipmentName;
 
     private Integer equipmentType;
