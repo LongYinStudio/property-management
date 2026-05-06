@@ -12,6 +12,7 @@ import com.property.mapper.FacilityMapper;
 import com.property.mapper.UserMapper;
 import com.property.security.SecurityUtils;
 import com.property.service.EquipmentInspectionService;
+import com.property.util.FileUrlUtils;
 import com.property.vo.EquipmentInspectionVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -51,7 +52,7 @@ public class EquipmentInspectionServiceImpl implements EquipmentInspectionServic
         inspection.setStatus(request.getStatus());
         inspection.setResult(request.getResult());
         inspection.setIssueDescription(request.getIssueDescription());
-        inspection.setImages(request.getImages());
+        inspection.setImages(FileUrlUtils.normalizeUploadUrlList(request.getImages()));
         inspection.setRemark(request.getRemark());
         inspection.setDeleted(0);
 
@@ -139,6 +140,7 @@ public class EquipmentInspectionServiceImpl implements EquipmentInspectionServic
     private EquipmentInspectionVO convertToVO(EquipmentInspection inspection) {
         EquipmentInspectionVO vo = new EquipmentInspectionVO();
         BeanUtils.copyProperties(inspection, vo);
+        vo.setImages(FileUrlUtils.normalizeUploadUrlList(vo.getImages()));
 
         User user = userMapper.selectById(inspection.getUserId());
         if (user != null) {

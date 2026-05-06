@@ -12,6 +12,7 @@ import com.property.mapper.UserMapper;
 import com.property.security.JwtUtils;
 import com.property.security.LoginUser;
 import com.property.service.AuthService;
+import com.property.util.FileUrlUtils;
 import com.property.vo.LoginVO;
 import com.property.vo.UserVO;
 import lombok.RequiredArgsConstructor;
@@ -129,7 +130,7 @@ public class AuthServiceImpl implements AuthService {
             user.setRealName(request.getRealName());
         }
         if (request.getAvatar() != null) {
-            user.setAvatar(request.getAvatar());
+            user.setAvatar(FileUrlUtils.normalizeUploadUrl(request.getAvatar()));
         }
         if (request.getPhone() != null) {
             user.setPhone(request.getPhone());
@@ -146,6 +147,7 @@ public class AuthServiceImpl implements AuthService {
     private UserVO convertToUserVO(User user) {
         UserVO vo = new UserVO();
         BeanUtils.copyProperties(user, vo);
+        vo.setAvatar(FileUrlUtils.normalizeUploadUrl(vo.getAvatar()));
         if (user.getCreateTime() != null) {
             vo.setCreateTime(user.getCreateTime().format(FORMATTER));
         }

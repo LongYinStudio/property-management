@@ -10,6 +10,7 @@ import com.property.mapper.ComplaintMapper;
 import com.property.mapper.UserMapper;
 import com.property.security.SecurityUtils;
 import com.property.service.ComplaintService;
+import com.property.util.FileUrlUtils;
 import com.property.vo.ComplaintVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -40,7 +41,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         complaint.setUserId(userId);
         complaint.setTitle(request.getTitle());
         complaint.setContent(request.getContent());
-        complaint.setImages(request.getImages());
+        complaint.setImages(FileUrlUtils.normalizeUploadUrlList(request.getImages()));
         complaint.setType(request.getType());
         complaint.setStatus(Complaint.STATUS_PENDING);
         complaint.setDeleted(0);
@@ -141,6 +142,7 @@ public class ComplaintServiceImpl implements ComplaintService {
     private ComplaintVO convertToVO(Complaint complaint) {
         ComplaintVO vo = new ComplaintVO();
         BeanUtils.copyProperties(complaint, vo);
+        vo.setImages(FileUrlUtils.normalizeUploadUrlList(vo.getImages()));
         
         // 设置用户名
         User user = userMapper.selectById(complaint.getUserId());

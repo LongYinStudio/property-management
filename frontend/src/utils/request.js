@@ -3,9 +3,32 @@ import { ElMessage } from "element-plus";
 import Cookies from "js-cookie";
 import router from "@/router";
 
+const normalizeUploadUrl = (value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+  const uploadsIndex = value.indexOf("/uploads/");
+  if (uploadsIndex >= 0) {
+    return value.slice(uploadsIndex);
+  }
+  return value;
+};
+
+const normalizeResponseData = (value) => {
+  if (Array.isArray(value)) {
+    return value.map(normalizeResponseData);
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, normalizeResponseData(item)]),
+    );
+  }
+  return normalizeUploadUrl(value);
+};
+
 // 创建axios实例
 const request = axios.create({
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
   timeout: 10000,
 });
 
@@ -30,7 +53,7 @@ request.interceptors.response.use(
     if (response.data instanceof Blob) {
       return response.data;
     }
-    const res = response.data;
+    const res = normalizeResponseData(response.data);
     if (res.code === 200) {
       return res;
     } else if (res.code === 401) {

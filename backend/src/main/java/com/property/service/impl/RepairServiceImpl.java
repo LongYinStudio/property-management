@@ -10,6 +10,7 @@ import com.property.mapper.RepairMapper;
 import com.property.mapper.UserMapper;
 import com.property.security.SecurityUtils;
 import com.property.service.RepairService;
+import com.property.util.FileUrlUtils;
 import com.property.vo.RepairVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -40,7 +41,7 @@ public class RepairServiceImpl implements RepairService {
         repair.setUserId(userId);
         repair.setTitle(request.getTitle());
         repair.setContent(request.getContent());
-        repair.setImages(request.getImages());
+        repair.setImages(FileUrlUtils.normalizeUploadUrlList(request.getImages()));
         repair.setType(request.getType());
         repair.setStatus(Repair.STATUS_PENDING);
         repair.setDeleted(0);
@@ -145,6 +146,7 @@ public class RepairServiceImpl implements RepairService {
     private RepairVO convertToVO(Repair repair) {
         RepairVO vo = new RepairVO();
         BeanUtils.copyProperties(repair, vo);
+        vo.setImages(FileUrlUtils.normalizeUploadUrlList(vo.getImages()));
         
         // 设置用户名
         User user = userMapper.selectById(repair.getUserId());

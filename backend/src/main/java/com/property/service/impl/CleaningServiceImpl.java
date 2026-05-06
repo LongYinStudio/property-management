@@ -10,6 +10,7 @@ import com.property.mapper.CleaningMapper;
 import com.property.mapper.UserMapper;
 import com.property.security.SecurityUtils;
 import com.property.service.CleaningService;
+import com.property.util.FileUrlUtils;
 import com.property.vo.CleaningVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -40,7 +41,7 @@ public class CleaningServiceImpl implements CleaningService {
         cleaning.setUserId(userId);
         cleaning.setLocation(request.getLocation());
         cleaning.setDescription(request.getDescription());
-        cleaning.setImages(request.getImages());
+        cleaning.setImages(FileUrlUtils.normalizeUploadUrlList(request.getImages()));
         cleaning.setStatus(Cleaning.STATUS_PENDING);
         cleaning.setDeleted(0);
         
@@ -144,6 +145,7 @@ public class CleaningServiceImpl implements CleaningService {
     private CleaningVO convertToVO(Cleaning cleaning) {
         CleaningVO vo = new CleaningVO();
         BeanUtils.copyProperties(cleaning, vo);
+        vo.setImages(FileUrlUtils.normalizeUploadUrlList(vo.getImages()));
         
         // 设置用户名
         User user = userMapper.selectById(cleaning.getUserId());

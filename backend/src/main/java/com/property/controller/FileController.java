@@ -1,6 +1,7 @@
 package com.property.controller;
 
 import com.property.common.Result;
+import com.property.util.FileUrlUtils;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -26,9 +27,6 @@ public class FileController {
 
     @Value("${file.upload-path:${user.home}/property-uploads}")
     private String uploadPath;
-
-    @Value("${file.base-url:http://localhost:8080}")
-    private String baseUrl;
 
     @PostConstruct
     public void init() {
@@ -88,7 +86,7 @@ public class FileController {
             Path filePath = dirPath.resolve(filename);
             Files.copy(file.getInputStream(), filePath);
 
-            String url = baseUrl + "/uploads/document/" + datePath + "/" + filename;
+            String url = FileUrlUtils.normalizeUploadUrl("/uploads/document/" + datePath + "/" + filename);
             Map<String, String> result = new HashMap<>();
             result.put("url", url);
             result.put("name", originalFilename != null ? originalFilename : filename);
@@ -135,7 +133,7 @@ public class FileController {
             Path filePath = dirPath.resolve(filename);
             Files.copy(file.getInputStream(), filePath);
 
-            String url = baseUrl + "/uploads/" + directory + "/" + datePath + "/" + filename;
+            String url = FileUrlUtils.normalizeUploadUrl("/uploads/" + directory + "/" + datePath + "/" + filename);
             Map<String, String> result = new HashMap<>();
             result.put("url", url);
 

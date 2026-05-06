@@ -14,6 +14,7 @@ import com.property.mapper.RoomMapper;
 import com.property.mapper.UserMapper;
 import com.property.security.LoginUser;
 import com.property.service.UserService;
+import com.property.util.FileUrlUtils;
 import com.property.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -64,7 +65,7 @@ public class UserServiceImpl implements UserService {
         user.setRealName(request.getRealName());
         user.setPhone(request.getPhone());
         user.setEmail(request.getEmail());
-        user.setAvatar(request.getAvatar());
+        user.setAvatar(FileUrlUtils.normalizeUploadUrl(request.getAvatar()));
         user.setRole(request.getRole());
         user.setStatus(request.getStatus() != null ? request.getStatus() : User.STATUS_ENABLE);
         user.setCommunityId(binding.communityId());
@@ -111,7 +112,7 @@ public class UserServiceImpl implements UserService {
         user.setRealName(request.getRealName());
         user.setPhone(request.getPhone());
         user.setEmail(request.getEmail());
-        user.setAvatar(request.getAvatar());
+        user.setAvatar(FileUrlUtils.normalizeUploadUrl(request.getAvatar()));
         user.setRole(request.getRole());
         if (request.getStatus() != null) {
             user.setStatus(request.getStatus());
@@ -236,6 +237,7 @@ public class UserServiceImpl implements UserService {
     private UserVO convertToVO(User user) {
         UserVO vo = new UserVO();
         BeanUtils.copyProperties(user, vo);
+        vo.setAvatar(FileUrlUtils.normalizeUploadUrl(vo.getAvatar()));
         if (user.getCommunityId() != null) {
             Community community = communityMapper.selectById(user.getCommunityId());
             if (community != null) {

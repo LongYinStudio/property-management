@@ -10,6 +10,7 @@ import com.property.mapper.OwnerContractMapper;
 import com.property.mapper.UserMapper;
 import com.property.security.LoginUser;
 import com.property.service.OwnerContractService;
+import com.property.util.FileUrlUtils;
 import com.property.vo.OwnerContractVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -39,6 +40,7 @@ public class OwnerContractServiceImpl implements OwnerContractService {
         LoginUser loginUser = getCurrentLoginUser();
         OwnerContract ownerContract = new OwnerContract();
         BeanUtils.copyProperties(request, ownerContract);
+        ownerContract.setAttachmentUrl(FileUrlUtils.normalizeUploadUrl(ownerContract.getAttachmentUrl()));
         ownerContract.setCreatorId(loginUser.getUser().getId());
         ownerContract.setDeleted(0);
 
@@ -56,6 +58,7 @@ public class OwnerContractServiceImpl implements OwnerContractService {
         validateRequest(request, id);
 
         BeanUtils.copyProperties(request, ownerContract);
+        ownerContract.setAttachmentUrl(FileUrlUtils.normalizeUploadUrl(ownerContract.getAttachmentUrl()));
         ownerContractMapper.updateById(ownerContract);
         return convertToVO(ownerContract);
     }
@@ -164,6 +167,7 @@ public class OwnerContractServiceImpl implements OwnerContractService {
     private OwnerContractVO convertToVO(OwnerContract ownerContract) {
         OwnerContractVO vo = new OwnerContractVO();
         BeanUtils.copyProperties(ownerContract, vo);
+        vo.setAttachmentUrl(FileUrlUtils.normalizeUploadUrl(vo.getAttachmentUrl()));
 
         User owner = userMapper.selectById(ownerContract.getUserId());
         if (owner != null) {

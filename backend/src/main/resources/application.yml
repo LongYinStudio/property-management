@@ -5,7 +5,7 @@ spring:
   application:
     name: property-management
   profiles:
-    active: local
+    active: ${SPRING_PROFILES_ACTIVE:local}
 
   servlet:
     multipart:
@@ -54,7 +54,9 @@ logging:
 # 文件上传配置
 file:
   upload-path: ${FILE_UPLOAD_PATH:${user.home}/property-uploads}
-  base-url: ${FILE_BASE_URL:http://localhost:8080}
+
+cors:
+  allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:3000,http://127.0.0.1:3000,https://property.longyinstudio.cn}
 
 springdoc:
   api-docs:
